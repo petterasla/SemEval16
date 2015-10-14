@@ -24,18 +24,62 @@ def processData(doc_name):
 
 data = processData("semeval2016-task6-trainingdata.txt")
 
-print "Lenght of the data: " +str(len(data))
-print "Test sample from the topic: Atheism"
-print data[1]
-print
-print "Test sample from the topic: Climate Change is a Real Concern"
-print data[620]
-print
-print "Test sample from the topic: Feminist Movement"
-print data[920]
-print
-print "Test sample from the topic: Hillary Clinton"
-print data[1700]
-print
-print "Test sample from the topic: Legalization of Abortion"
-print data[2400]
+def getTopicData(topic):
+    """
+    Extracts the data from a given topic
+
+    :param topic:   A string with topic name [Atheism, Climate Change is a Real Concern,
+                    Feminist Movement, Hillary Clinton, Legalization of Abortion]
+    :return:        A list with information about that topic
+    """
+    data = processData("semeval2016-task6-trainingdata.txt")
+    topicData = []
+    for i in range(len(data)):
+        if data[i][1] == topic:
+            topicData.append(data[i])
+    return topicData
+
+def getAllTweets(data_file="All"):
+    """
+    Extracts all the tweets from the processed data
+
+    :param data_file:   Either a list with data (from getTopicData(topic)) or the whole dataset
+    :return:            A list with all the tweets
+    """
+    if data_file == "All":
+        data = processData("semeval2016-task6-trainingdata.txt")
+    else:
+        data = data_file
+    tweets = []
+    for i in range(len(data)):
+        tweets.append(data[i][2])
+    return tweets
+
+def getAllStances(data_file="All"):
+    """
+    Extracts all the stances from the processed data
+
+    :param data_file:   Either a list with data (from getTopicData(topic)) or the whole dataset
+    :return:            A list with all the stances
+    """
+    if data_file == "All":
+        data = processData("semeval2016-task6-trainingdata.txt")
+    else:
+        data = data_file
+    stance = []
+    for i in range(len(data)):
+        stance.append(data[i][3])
+    return stance
+
+
+# Example use
+# Get all tweets and stances
+allTweet = getAllTweets("All")
+allStance = getAllStances("All")
+
+#Gets all the tweets from Climate change
+tweets = getAllTweets(getTopicData("Climate Change is a Real Concern"))
+
+#Gets all the stance from Climate change
+stance = getAllStances(getTopicData("Climate Change is a Real Concern"))
+

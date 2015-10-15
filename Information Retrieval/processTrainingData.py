@@ -1,3 +1,5 @@
+import re
+
 def processData(doc_name):
     """
     Process the text file from semEval task 6 training data to list
@@ -97,17 +99,38 @@ def getAllHashtags(tweet_list):
         hashtags.append(hash)
     return hashtags
 
-def decryptHashtags(hashtag_list):
+
+def decryptHashtags(hashes):
     """
-    Takes a list with hashtags, removes the hashes and tries to split the tweets into words.
+    Takes a single list of hashtags, removes the hashes and tries to split the tags into words
+
+    :param hashes:      A list of hashes
+    :return wordList:   A list of words with no duplicates nor hashtags
+    """
+    wordList = set()
+    for tag in hashes:
+        if tag[1:].isupper() or tag[1:].islower():
+            wordList.add(tag[1:])
+        else:
+            words = re.findall('[A-Z][^A-Z]*',tag[1:])
+            for word in words:
+                wordList.add(word)
+
+    return list(wordList)
+
+def decryptAllHashtags(hashtag_list):
+    """
+    Takes a list with lists of hashtags and decrypts into words using decryptHashtags(hashes).
 
     :param hashtag_list:    A list with lists of hashtags
-    :return wordList:       A list with words without hashtags
+    :return wordList:       A list of words without hashtags and no duplicates
     """
-    capitals = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    wordList = set()
     for hashes in hashtag_list:
-
-
+        words = decryptHashtags(hashes)
+        for word in words:
+            wordList.add(word)
+    return list(wordList)
 
 
 # Example use
@@ -121,7 +144,8 @@ def decryptHashtags(hashtag_list):
 #Get all the stance from Climate change
 #stance = getAllStances(getTopicData("Climate Change is a Real Concern"))
 
-#Get all the hashtags from tweets (in this case, under the topic: Climate Change a real consern)
-#hashtags = getAllHashtags(getAllTweets(getTopicData("Climate Change is a Real Concern")))
+#Get all the hashtags from tweets (in this case, under the topic: Climate Change a real consern[0:10])
+#hashtags = getAllHashtags(getAllTweets(getTopicData("Climate Change is a Real Concern"))[0:10])
 
-
+#Decrypt all the hashtags from the topic: Climate Change is a real consern
+#words = decryptAllHashtags(hashtags)

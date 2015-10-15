@@ -1,4 +1,10 @@
 def processData(doc_name):
+    """
+    Process the text file from semEval task 6 training data to list
+
+    :param doc_name:    String containing the document file name
+    :return:            A list with lists of data separated by id, topic,tweet and stance
+    """
     data = []
     f = open(doc_name,"r")
     line = f.readline()     #Firste line states id, year, title of the article
@@ -59,8 +65,8 @@ def getAllStances(data_file="All"):
     """
     Extracts all the stances from the processed data
 
-    :param data_file:   Either a list with data (from getTopicData(topic)) or the whole dataset
-    :return:            A list with all the stances
+    :param data_file:   Either a list with data (from getTopicData(topic)) or the whole dataset 'All'
+    :return stance:     A list with all the stances
     """
     if data_file == "All":
         data = processData("semeval2016-task6-trainingdata.txt")
@@ -71,15 +77,51 @@ def getAllStances(data_file="All"):
         stance.append(data[i][3])
     return stance
 
+def getAllHashtags(tweet_list):
+    """
+    Extracts all the hashtags from the tweets
+
+    :param tweet_list:   A list with lists of all the tweets
+    :return hashtags:    A list with lists of the hashtags for each tweet
+    """
+    data = tweet_list
+    hashtags = []
+    for line in data:
+        hash = []
+        hashStartIndex = line.find("#")
+        stopIndex = line.find("#SemST")
+        while hashStartIndex < stopIndex:
+            hashStopIndex = line.find(" ", hashStartIndex)
+            hash.append(line[hashStartIndex:hashStopIndex])
+            hashStartIndex = line.find("#", hashStartIndex+1)
+        hashtags.append(hash)
+    return hashtags
+
+def decryptHashtags(hashtag_list):
+    """
+    Takes a list with hashtags, removes the hashes and tries to split the tweets into words.
+
+    :param hashtag_list:    A list with lists of hashtags
+    :return wordList:       A list with words without hashtags
+    """
+    capitals = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    for hashes in hashtag_list:
+
+
+
 
 # Example use
 # Get all tweets and stances
-allTweet = getAllTweets("All")
-allStance = getAllStances("All")
+#allTweet = getAllTweets("All")
+#allStance = getAllStances("All")
 
-#Gets all the tweets from Climate change
-tweets = getAllTweets(getTopicData("Climate Change is a Real Concern"))
+#Get all the tweets from Climate change
+#tweets = getAllTweets(getTopicData("Climate Change is a Real Concern"))
 
-#Gets all the stance from Climate change
-stance = getAllStances(getTopicData("Climate Change is a Real Concern"))
+#Get all the stance from Climate change
+#stance = getAllStances(getTopicData("Climate Change is a Real Concern"))
+
+#Get all the hashtags from tweets (in this case, under the topic: Climate Change a real consern)
+#hashtags = getAllHashtags(getAllTweets(getTopicData("Climate Change is a Real Concern")))
+
 

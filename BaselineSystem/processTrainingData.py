@@ -22,7 +22,7 @@ def processData(doc_name):
                 dataLine[3] = dataLine[3][:-1]  # Removing the last \r on each stance
                 break
             attr = line[index+1:index2]         # Storing each attr in the line (topic, tweet and stance)
-            dataLine.append(attr)               # Adding the attr to the temp list
+            dataLine.append(attr.decode("ISO-8859-1"))               # Adding the attr to the temp list
             index = index2                      # Setting prev index to newest
 
         data.append(dataLine)
@@ -54,7 +54,7 @@ def getAllTweets(data_file="All"):
     Extracts all the tweets from the processed data
 
     :param data_file:   Either a list with data (from getTopicData(topic)) or the whole dataset
-    :return:            A list with all the tweets
+    :return tweets:     A list with all the tweets
     """
     if data_file == "All":
         data = processData("semeval2016-task6-trainingdata.txt")
@@ -62,8 +62,47 @@ def getAllTweets(data_file="All"):
         data = data_file
     tweets = []
     for i in range(len(data)):
-        tweets.append(data[i][2].decode("ISO-8859-1"))
+        tweets.append(data[i][2])
     return tweets
+def getAllTweetsWithoutHashOrAlphaTag(tweet_list):
+    """
+    Extracts all the tweets and removes the hashtags and @ tags from the processed data
+
+    :param tweet_list:   Either a list with data (from getTopicData(topic)) or the whole dataset
+    :return tweets:     A list with all the tweets. No hashtags or @tags.
+    """
+
+    tweets = []
+    for line in tweet_list:
+        indices = []
+        s = line
+        hashStartIndex = line.find("#")
+        stopIndex = line.find("#SemST")
+        while hashStartIndex < stopIndex:
+            hashStopIndex = line.find(" ", hashStartIndex)
+            indices.append([hashStartIndex, hashStopIndex])
+            hashStartIndex = line.find("#", hashStartIndex+1)
+        for i in indices:
+            hash = line[i[0]:i[1]]
+            s = s.replace(hash,"")
+
+
+        stopIndex = s.find("#SemST")
+        tagStartIndex = s.find("@")
+        indices = []
+        while tagStartIndex < stopIndex and tagStartIndex != -1:
+            tagStopIndex = s.find(" ", tagStartIndex)
+            indices.append([tagStartIndex, tagStopIndex])
+            tagStartIndex = s.find("@", tagStartIndex+1)
+        s1 = s
+        for i in indices:
+            tag = s[i[0]:i[1]]
+            s1 = s1.replace(tag, "")
+        stopIndex = s1.find("#SemST")
+        s1 = s1[:stopIndex]
+        tweets.append(s1)
+    return tweets
+
 
 def getAllStances(data_file="All"):
     """
@@ -107,18 +146,18 @@ def decryptHashtags(hashes):
     Takes a single list of hashtags, removes the hashes and tries to split the tags into words
 
     :param hashes:      A list of hashes
-    :return wordList:   A list of words with no duplicates nor hashtags
+    :return wordList:   A list of words with no hashtags
     """
-    wordList = set()
+    wordList = []
     for tag in hashes:
         if tag[1:].isupper() or tag[1:].islower():
-            wordList.add(tag[1:])
+            wordList.append(tag[1:])
         else:
             words = re.findall('[A-Z][^A-Z]*',tag[1:])
             for word in words:
-                wordList.add(word)
+                wordList.append(word)
 
-    return list(wordList)
+    return wordList
 
 def decryptAllHashtags(hashtag_list):
     """
@@ -149,6 +188,7 @@ TOPIC5 = "Legalization of Abortion"
 
 #Get all the tweets from Climate change
 #tweets = getAllTweets(getTopicData(TOPIC2))
+#parsed_tweets = getAllTweetsWithoutHashOrAlphaTag(tweets[8:10])
 
 #Get all the stance from Climate change
 #stance = getAllStances(getTopicData(TOPC2))

@@ -2,12 +2,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import svm, cross_validation
 import processTrainingData as ptd
 
-TOPIC1 = "Climate Change is a Real Concern"
-TOPIC2 = "Atheism"
+TOPIC = "All"
+TOPIC1 = "Atheism"
+TOPIC2 = "Climate Change is a Real Concern"
 TOPIC3 = "Feminist Movement"
 TOPIC4 = "Hillary Clinton"
 TOPIC5 = "Legalization of Abortion"
-
+"""
 list_of_strings = []
 list_of_labels = []
 
@@ -26,11 +27,26 @@ for i in range(len(string_lists)-1):
             list_of_labels.append(1)
         else:
             list_of_labels.append(2)
-
+"""
+data = TOPIC5
+print "Creating test and training sets with topic: " + str(data)
 # ****** Creating test and training sets ******
-train = list_of_strings
-print(len(list_of_strings))
-train_labels = list_of_labels
+tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(ptd.getTopicData(data)))
+tweets2 = ptd.getAllTweets(ptd.getTopicData(data))
+print "len of tweets: " + str(len(tweets))
+hashtags = ptd.getAllHashtags(tweets2)
+print "len of hashtags: " + str(len(hashtags))
+print "hash ex: "
+print hashtags[0:3]
+for index in range(len(tweets)):
+    words = ptd.decryptHashtags(hashtags[index])
+    for word in words:
+        tweets[index] = tweets[index] + " " + word + " "
+
+train = tweets
+print train[0:2]
+train_labels = ptd.getAllStances(ptd.getTopicData(data))
+print "len of train set and labels: " + str(len(train)) + " == " + str(len(train_labels))
 
 # ****** Create a bag of words from the training set ******
 print "Creating the bag of words..."
@@ -64,14 +80,16 @@ clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
               random_state=None, shrinking=True, tol=0.001, verbose=False)
 
 # Divide into test and train partition
-X_train, X_test, y_train, y_test = cross_validation.train_test_split(train_data_features, train_labels, test_size=0.50, random_state=0)
+X_train, X_test, y_train, y_test = cross_validation.train_test_split(train_data_features, train_labels, test_size=0.25, random_state=0)
 # Fit model
 clf.fit(X_train, y_train)
 
 # ******* Predicting test labels *******
 print "Predicting test labels..."
+print "Size of test set: " + str(len(X_test))
+print "Size of train set: " +str(len(X_train))
 # Calcualte score using k-fold cross validation
-scores = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=5)
+scores = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=5, n_jobs=-1)
 print 'Score from CV: ' + str(scores)
 
 print 'Score from test set: ' + str(clf.score(X_test, y_test))

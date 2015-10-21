@@ -1,0 +1,12 @@
+                        All                 Atheism         Climate is a Real Consern       Feminist Movement       Hillary Clinton         Legalization of Abortion
+
+Size:                   2814                513             395                             664                     639                     603
+
+Favor:                  731                 92              212                             210                     112                     105
+Against:                1342                304             15                              328                     361                     334
+None:                   741                 117             168                             126                     166                     164
+
+# of hashtags:          3502                731             669                             618                     752                     732
+# of unique words
+  in hashtags:          2391                587             578                             506                     580                     630
+

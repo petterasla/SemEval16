@@ -28,7 +28,7 @@ for i in range(len(string_lists)-1):
         else:
             list_of_labels.append(2)
 """
-data = TOPIC5
+data = TOPIC1
 print "Creating test and training sets with topic: " + str(data)
 # ****** Creating test and training sets ******
 tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(ptd.getTopicData(data)))

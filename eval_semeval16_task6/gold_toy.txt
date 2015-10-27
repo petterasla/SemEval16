@@ -1,0 +1,6 @@
+ID	Target	Tweet	Stance
+1	Hillary Clinton	@tedcruz And, #HandOverTheServer she wiped clean + 30k deleted emails, explains dereliction of duty/lies re #Benghazi,etc #tcot #SemST	AGAINST
+2	Hillary Clinton	Hillary is our best choice if we truly want to continue being a progressive nation. #Ohio #SemST	FAVOR
+3	Hillary Clinton	@TheView I think our country is ready for a female pres, it can't ever be Hillary #SemST	AGAINST
+4	Hillary Clinton	I just gave an unhealthy amount of my hard-earned money away to the big gov't & untrustworthy IRS. #WhyImNotVotingForHillary #SemST	AGAINST
+5	Hillary Clinton	I just gave an unhealthy amount of my hard-earned money away to the big gov't & untrustworthy IRS. #WhyImNotVotingForHillary #SemST	NONE

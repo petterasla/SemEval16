@@ -1,4 +1,4 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
 from sklearn import svm, cross_validation
 import processTrainingData as ptd
 
@@ -16,6 +16,7 @@ print "Creating test and training sets with topic: " + str(data)
 
 tweets = ptd.getAllTweets(ptd.getTopicData(data))
 train = tweets
+print train[0]
 train_labels = ptd.getAllStances(ptd.getTopicData(data))
 
 print "len of train set and labels: " + str(len(train)) + " == " + str(len(train_labels))
@@ -24,15 +25,17 @@ print "len of train set and labels: " + str(len(train)) + " == " + str(len(train
 # ****** Create a bag of words from the training set ******
 print "Creating the bag of words..."
 
-# Initialize the "TfidfVectorizer" object, which is scikit-learn's bag of words tool.
-# Convert a collection of raw documents to a matrix of TF-IDF features.
-# Equivalent to CountVectorizer followed by TfidfTransformer.
-tfidf_vectorizer = TfidfVectorizer(input=train,
+# Initialize the "CountVectorizer" object, which is scikit-learn's bag of words tool.
+# Transform a collection of count to a matrix of TF-IDF features.
+vectorizer = CountVectorizer(
                                    analyzer = "word",
                                    preprocessor = None,
+                                   stop_words = None, # May use 'english'
                                    max_features = 5000)
 
-train_data_features = tfidf_vectorizer
+count = vectorizer.fit_transform(train)
+tfidf_transformer = TfidfTransformer()
+train_data_features = tfidf_transformer.fit_transform(count)
 
 # Numpy arrays are easy to work with, so convert the result to an array
 train_data_features = train_data_features.toarray()

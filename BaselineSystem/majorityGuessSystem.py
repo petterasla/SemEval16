@@ -1,7 +1,8 @@
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn import svm, cross_validation
+from sklearn import cross_validation
 from sklearn import dummy
 import processTrainingData as ptd
+import writePredictionsToFile as wptf
 
 TOPIC1 = "Climate Change is a Real Concern"
 TOPIC2 = "Atheism"
@@ -77,3 +78,20 @@ scores = cross_validation.cross_val_score(clf, train_data_features, train_labels
 
 print 'Score from CV: ' + str(scores)
 print 'Score from test set: ' + str(clf.score(X_test, y_test))
+
+"""
+file = wptf.initFile("predictions")
+ID = 1
+for i in range(len(X_test)):
+    prediction = clf.predict(X_test[i],y_test[i])
+    if prediction == 0:
+        prediction = "AGAINST"
+    elif prediction == 1:
+        prediction = "NONE"
+    else:
+        prediction = "FAVOUR"
+
+    #wptf.writePrdictionToFile(ID, )
+    ID += 1
+file.close()
+"""

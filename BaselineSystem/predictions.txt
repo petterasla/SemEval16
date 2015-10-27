@@ -1,0 +1,4 @@
+ID	TARGET	TWEET	STANCE
+1	Hillary Clinton	bfivblbvirbbdbddnnf fej cr reif eri crierknef	FAVOR
+2	Hillary Clinton	bfivblbvirbbdbddnnf fej cr reif eri crierknef	AGAINST
+3	Hillary Clinton	bfivblbvirbbdbddnnf fej cr reif eri crierknef	NONE

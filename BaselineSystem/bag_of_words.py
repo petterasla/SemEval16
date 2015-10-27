@@ -1,4 +1,4 @@
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn import svm, cross_validation
 import processTrainingData as ptd
 
@@ -11,28 +11,14 @@ TOPIC5 = "Legalization of Abortion"
 
 data = TOPIC2
 
-
 # ****** Creating test and training sets ******
 print "Creating test and training sets with topic: " + str(data)
 
-tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(ptd.getTopicData(data)))
-tweets2 = ptd.getAllTweets(ptd.getTopicData(data))
-hashtags = ptd.getAllHashtags(tweets2)
-
-print "len of tweets: " + str(len(tweets))
-print "len of hashtags: " + str(len(hashtags))
-print "hash ex: "
-print hashtags[0:3]
-
-for index in range(len(tweets)):
-    words = ptd.decryptHashtags(hashtags[index])
-    for word in words:
-        tweets[index] = tweets[index] + " " + word + " "
+tweets = ptd.getAllTweets(ptd.getTopicData(data))
 
 train = tweets
 train_labels = ptd.getAllStances(ptd.getTopicData(data))
 
-print train[0:2]
 print "len of train set and labels: " + str(len(train)) + " == " + str(len(train_labels))
 
 
@@ -46,10 +32,13 @@ vectorizer = CountVectorizer(analyzer = "word", \
                              stop_words = None, \
                              max_features = 5000)
 
+tdidf_transformer = TfidfTransformer()
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
 # should be a list of strings.
-train_data_features = vectorizer.fit_transform(train)
+
+#train_data_features = vectorizer.fit_transform(train)
+train_data_features = tdidf_transformer.fit_transform(train)
 
 # Numpy arrays are easy to work with, so convert the result to an array
 train_data_features = train_data_features.toarray()

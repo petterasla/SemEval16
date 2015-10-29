@@ -19,7 +19,7 @@ def processData(doc_name):
         while index < len(line):                # Looping through the rest of the tabs: \t
             index2 = line.find("\t", index+1)
             if index == -1:
-                dataLine[3] = dataLine[3][:-1]  # Removing the last \r on each stance
+                #dataLine[3] = dataLine[3][:-1]  # Removing the last \r on each stance
                 break
             attr = line[index+1:index2]         # Storing each attr in the line (topic, tweet and stance)
             dataLine.append(attr.decode("ISO-8859-1"))               # Adding the attr to the temp list

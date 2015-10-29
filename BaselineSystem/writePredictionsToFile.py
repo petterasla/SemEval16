@@ -1,7 +1,6 @@
 # Tools for writing predictions to file
 def initFile(filename):
     file = open(filename+".txt", 'w')
-    file.write("ID\tTARGET\tTWEET\tSTANCE\n")
     return file
 
 def writePrdictionToFile(ID, TARGET, TWEET, STANCE, file):

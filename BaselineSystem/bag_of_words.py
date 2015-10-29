@@ -82,6 +82,7 @@ clf.fit(train_data_features, train_labels)
 print "Predicting test labels..."
 print "Size of train set: " +str(len(train_data_features))
 print "Size of test set: " + str(len(test_data_features))
+predictions = clf.predict(test_data_features)
 
 # Calcualte score using k-fold cross validation
 # scores = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=5, n_jobs=-1)
@@ -93,11 +94,10 @@ print "Size of test set: " + str(len(test_data_features))
 
 #************ Write to file ******************
 data_file = ptd.getTopicData(TOPIC2)
-guesses = clf.predict(test_data_features)
 guess_file = write.initFile("guess")
 gold_file = write.initFile("gold")
-for index in range(len(guesses)):
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], guesses[index], guess_file)
+for index in range(len(predictions)):
+    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], predictions[index], guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
 
 guess_file.close()

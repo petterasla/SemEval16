@@ -12,10 +12,14 @@ TOPIC3 = "Feminist Movement"
 TOPIC4 = "Hillary Clinton"
 TOPIC5 = "Legalization of Abortion"
 
-t = TOPIC2
-train_data, test_data = ptd.train_test_split(ptd.getTopicData(t), 0.2)
+t = TOPIC           # Select a topic that will be used for training and testing
+ratio = 0.2         # test ratio from data set
+
+
 # ****** Creating training and test set ******
 print "Creating test and training sets with topic: " + str(t)
+# Splitting data into train and test data.
+train_data, test_data = ptd.train_test_split(ptd.getTopicData(t), ratio)
 
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))

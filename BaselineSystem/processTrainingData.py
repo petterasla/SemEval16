@@ -1,4 +1,5 @@
 import re
+import random
 
 def processData(doc_name):
     """
@@ -200,4 +201,9 @@ TOPIC5 = "Legalization of Abortion"
 #Decrypt all the hashtags from the topic: Climate Change is a real consern
 #words = decryptAllHashtags(hashtags)
 
-
+def train_test_split(data, percentage):
+    k = int(percentage*len(data))
+    random.shuffle(data)
+    test = data[:k]
+    train = data[k:]
+    return [train, test]

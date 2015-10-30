@@ -118,6 +118,7 @@ for index in range(len(svm_predictions)):
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
 
 svm_guess_file.close()
+dummy_guess_file.close()
 gold_file.close()
 
 #*********** Evaluate the result with the given SemEval16 script **************

@@ -201,9 +201,17 @@ TOPIC5 = "Legalization of Abortion"
 #Decrypt all the hashtags from the topic: Climate Change is a real consern
 #words = decryptAllHashtags(hashtags)
 
-def train_test_split(data, percentage):
-    k = int(percentage*len(data))
-    random.shuffle(data)
-    test = data[:k]
-    train = data[k:]
-    return [train, test]
+def train_test_split(data, percentage, test_topic):
+    if (test_topic == "All"):
+        k = int(percentage*len(data))
+        random.shuffle(data)
+        test = data[:k]
+        train = data[k:]
+        return [train, test]
+    else:
+        topic_data = getTopicData(test_topic)
+        k = int(percentage*len(topic_data))
+        test = topic_data[:k]
+        test_ids = [test[x][0] for x in range(len(test))]
+        train = [data[x] for x in range(len(data)) if data[x][0] not in test_ids]
+        return [train, test]

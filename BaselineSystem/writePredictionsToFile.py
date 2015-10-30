@@ -4,7 +4,9 @@ def initFile(filename):
     return file
 
 def writePrdictionToFile(ID, TARGET, TWEET, STANCE, file):
-    file.write(ID + "\t" + TARGET + "\t" + TWEET + "\t" + STANCE + "\n")
+    s = ID + "\t" + TARGET + "\t" + TWEET + "\t" + STANCE + "\n"
+    s = s.encode("utf-8")
+    file.write(s)
 
 # Example of usage
 """

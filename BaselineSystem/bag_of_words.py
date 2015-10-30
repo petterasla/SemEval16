@@ -1,4 +1,4 @@
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn import svm, cross_validation
 from sklearn import dummy
 import processTrainingData as ptd
@@ -12,14 +12,15 @@ TOPIC3 = "Feminist Movement"
 TOPIC4 = "Hillary Clinton"
 TOPIC5 = "Legalization of Abortion"
 
-t = TOPIC           # Select a topic that will be used for training and testing
-ratio = 0.2         # test ratio from data set
-
+topic = TOPIC              # Select a topic that will be used as data
+test_topic = TOPIC5         # Select a topic that will be used for testing
+ratio = 0.3                # Decide a size in percentage as test ratio
+use_tf_idf = 0              #
 
 # ****** Creating training and test set ******
-print "Creating test and training sets with topic: " + str(t)
+print "Creating test and training sets with topic: " + str(topic)
 # Splitting data into train and test data.
-train_data, test_data = ptd.train_test_split(ptd.getTopicData(t), ratio)
+train_data, test_data = ptd.train_test_split(ptd.getTopicData(topic), ratio, test_topic)
 
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
@@ -54,20 +55,35 @@ print "Creating the bag of words..."
 vectorizer = CountVectorizer(analyzer = "word",         # Split the corpus into words
                              ngram_range = (1,1),       # N-gram: (1,1) = unigram, (2,2) = bigram
                              stop_words = "english",    # Built-in list of english stop words.
-                             max_features = 5000)
+                             max_features = 500)
 
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
 # should be a list of strings.
-train_data_features = vectorizer.fit_transform(train)
+if (use_tf_idf):
+    print "Applying TF*IDF..."
+    # Transforming to a matrix with counted number of words
+    count = vectorizer.fit_transform(train)
+    count2 = vectorizer.fit_transform(test)
 
-# Numpy arrays are easy to work with, so convert the result to an array
-train_data_features = train_data_features.toarray()
+    # Creating a TF*IDF transformer
+    tfidf_transformer = TfidfTransformer()
 
+    # Transforming the count matrix to the inverse (TD*IDF)
+    train_data_features = tfidf_transformer.fit_transform(count)
+    test_data_features = tfidf_transformer.fit_transform(count2)
 
-# Get a bag of words for the test set, and convert to a numpy array
-test_data_features = vectorizer.transform(test)
-test_data_features = test_data_features.toarray()
+    # Numpy arrays are easy to work with, so convert the result to an array
+    train_data_features = train_data_features.toarray()
+    test_data_features = test_data_features.toarray()
+else:
+    # Transforming to a matrix with counted number of words
+    train_data_features = vectorizer.fit_transform(train)
+    test_data_features = vectorizer.fit_transform(test)
+
+    # Numpy arrays are easy to work with, so convert the result to an array
+    train_data_features = train_data_features.toarray()
+    test_data_features = test_data_features.toarray()
 
 
 # ******* Train SVM classifier using bag of words *******
@@ -94,9 +110,6 @@ clf_dummy.fit(train_data_features, train_labels)
 print "Predicting test labels..."
 svm_predictions = clf.predict(test_data_features)
 dummy_predictions = clf_dummy.predict(test_data_features)
-
-print "len of svm: " + str(len(svm_predictions))
-print "len of svm: " + str(len(dummy_predictions))
 
 # Calcualte score using k-fold cross validation
 # scores = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=5, n_jobs=-1)

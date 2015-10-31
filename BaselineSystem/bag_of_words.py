@@ -15,10 +15,11 @@ TOPIC5 = "Legalization of Abortion"
 topic = TOPIC              # Select a topic that will be used as data
 test_topic = TOPIC5         # Select a topic that will be used for testing
 ratio = 0.3                # Decide a size in percentage as test ratio
-use_tf_idf = 0              #
+use_tf_idf = 1              # 1 = true, 0 = false
 
 # ****** Creating training and test set ******
-print "Creating test and training sets with topic: " + str(topic)
+print "Creating training set with topic: " + str(topic)
+print "Creating test set with topic: " + str(test_topic)
 # Splitting data into train and test data.
 train_data, test_data = ptd.train_test_split(ptd.getTopicData(topic), ratio, test_topic)
 
@@ -55,7 +56,7 @@ print "Creating the bag of words..."
 vectorizer = CountVectorizer(analyzer = "word",         # Split the corpus into words
                              ngram_range = (1,1),       # N-gram: (1,1) = unigram, (2,2) = bigram
                              stop_words = "english",    # Built-in list of english stop words.
-                             max_features = 500)
+                             max_features = 5000)
 
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
@@ -64,14 +65,14 @@ if (use_tf_idf):
     print "Applying TF*IDF..."
     # Transforming to a matrix with counted number of words
     count = vectorizer.fit_transform(train)
-    count2 = vectorizer.fit_transform(test)
+    count2 = vectorizer.transform(test)
 
     # Creating a TF*IDF transformer
     tfidf_transformer = TfidfTransformer()
 
     # Transforming the count matrix to the inverse (TD*IDF)
     train_data_features = tfidf_transformer.fit_transform(count)
-    test_data_features = tfidf_transformer.fit_transform(count2)
+    test_data_features = tfidf_transformer.transform(count2)
 
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
@@ -79,7 +80,7 @@ if (use_tf_idf):
 else:
     # Transforming to a matrix with counted number of words
     train_data_features = vectorizer.fit_transform(train)
-    test_data_features = vectorizer.fit_transform(test)
+    test_data_features = vectorizer.transform(test)
 
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
@@ -102,7 +103,7 @@ clf.fit(train_data_features, train_labels)
 
 # ******* Train dummy classifier ******
 print "Train dummy classifier..."
-clf_dummy = dummy.DummyClassifier(strategy='stratified', random_state=None, constant=None)
+clf_dummy = dummy.DummyClassifier(strategy='most_frequent', random_state=None, constant=None)
 clf_dummy.fit(train_data_features, train_labels)
 
 

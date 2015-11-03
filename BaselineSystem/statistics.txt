@@ -9,6 +9,27 @@ None:                   741                     117                     168     
 # of hashtags:          3502                    731                     669                             618                     752                     732
 # of unique words
   in hashtags:          2391                    587                     578                             506                     580                     630
+
+Top 5 hashtags:                                 FAVOR                   FAVOR                           FAVOR                   FAVOR                   FAVOR
+                                                13: #freethinker        13: #climate                    13: #feminist            8: #hillaryclinton      7: #rapeculture
+                                                 7: #LoveWins           12: #tip                        13: #yesallwomen         4: #lovewins            5: #scotus
+                                                 5: #god                12: #mission:#climate            7: #women               4: #world               5: #womensrights
+                                                 3: #christianity        8: #environment                 6: #equality            3: #unitedstates        3: #feminism
+                                                 2: #atheists/#bible     7: #cop21                       5: #heforshe            2: #equalityforall      3: #reprorights
+
+                                                AGAINST                 AGAINST                         AGAINST                 AGAINST                 AGAINST
+                                                36: #god                 3: #carbontaxscam              54: #gamergate          27: #wakeupamerica      34: #prolifeyouth
+                                                19: #islam               3: #chemtrails                 14: #feminist           23: #tcot               10: #alllivesmatter
+                                                11: #love                1: #fraud                      11: #spankafeminist     21: #hillaryclinton      9: #scotus
+                                                11: #teamjesus           1: #anthropocene                9: #feminists          14: #benghazi            9: #ccot
+                                                 9: #bible/#truth        1: #liberty                     6: #yesallwomen        13: #lol                 8: #prolifegen
+
+                                                NONE                    NONE                            NONE                    NONE                    NONE
+                                                10: #lovewins           11: #peace                       5: #gamergate           5: #wakeupamerica       9: #lovewins
+                                                 4: #love                5: #lovewins                    5: #blacklivesmatter    4: #tcot                7: #scotus
+                                                 4: #life                5: #gop                         4: #baltimoreriots      4: #morningjoe          5: #gaymarriage
+                                                 3: #lgbt                4: #valkilmer                   3: #equality            4: #unitedblue          4: #marriage
+                                                 3: #equality            4: #democracy                   2: #mondaymotivation    3: #lovewins            3: #tcot
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Results when trained
 on whole set.

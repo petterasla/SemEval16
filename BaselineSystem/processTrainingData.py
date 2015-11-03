@@ -1,5 +1,15 @@
 import re
 import random
+import numpy as np
+from nltk.stem.porter import PorterStemmer
+from collections import Counter
+
+TOPIC = "All"
+TOPIC1 = "Atheism"
+TOPIC2 = "Climate Change is a Real Concern"
+TOPIC3 = "Feminist Movement"
+TOPIC4 = "Hillary Clinton"
+TOPIC5 = "Legalization of Abortion"
 
 def processData(doc_name):
     """
@@ -30,8 +40,6 @@ def processData(doc_name):
         line = f.readline()
     f.close()
     return data
-
-#data = processData("semeval2016-task6-trainingdata.txt")
 
 def getTopicData(topic):
     """
@@ -176,12 +184,7 @@ def decryptAllHashtags(hashtag_list):
 
 
 # Example use
-TOPIC = "All"
-TOPIC2 = "Climate Change is a Real Concern"
-TOPIC1 = "Atheism"
-TOPIC3 = "Feminist Movement"
-TOPIC4 = "Hillary Clinton"
-TOPIC5 = "Legalization of Abortion"
+
 
 # Get all tweets and stances
 #allTweet = getAllTweets(getTopicData(TOPIC))
@@ -202,6 +205,16 @@ TOPIC5 = "Legalization of Abortion"
 #words = decryptAllHashtags(hashtags)
 
 def train_test_split(data, percentage, test_topic):
+    """
+    This method takes a data list and splits into a training set and test set. It uses the percentage parameter
+    to set the size of the test set. If the test_topic parameter is 'All', it will take the whole data set and
+    take random samples from every topic. If not, it will only have
+
+    :param data:            A list with data that want to be split in training and test set
+    :param percentage:      How big you want the test set to be in percentage.
+    :param test_topic:      Name of the topic you want to have in the test set
+    :return:                Returns a list [train, test] which include a split of training and test data
+    """
     if (test_topic == "All"):
         k = int(percentage*len(data))
         random.shuffle(data)
@@ -215,3 +228,56 @@ def train_test_split(data, percentage, test_topic):
         test_ids = [test[x][0] for x in range(len(test))]
         train = [data[x] for x in range(len(data)) if data[x][0] not in test_ids]
         return [train, test]
+
+
+def stemming(data):
+    pt = PorterStemmer()
+    new_data = []
+    for tweet in data:
+        words = tweet.split(" ")
+        stemmed_words = []
+        for word in words:
+            stemmed_words.append(pt.stem(word))
+        new_tweet = ""
+        for word in stemmed_words:
+            new_tweet = new_tweet + " " + word + " "
+        new_data.append(new_tweet)
+
+    return new_data
+
+#data = getAllTweets(getTopicData(TOPIC2)[0:3])
+#print data
+#k = stemming(data)
+#print k
+
+def count_hashtags(topic):
+
+    tweets = getAllTweets(getTopicData(topic))
+    stance = getAllStances(getTopicData(topic))
+    hashtags = getAllHashtags(tweets)
+    hashtag_list_favor = []
+    hashtag_list_against = []
+    hashtag_list_none = []
+
+    for i in range(len(hashtags)):
+        if len(hashtags[i]) > 0:
+            if (stance[i] == "FAVOR\r"):
+                for hash in hashtags[i]:
+                    hashtag_list_favor.append(hash.lower())
+            elif (stance[i] == "AGAINST\r"):
+                for hash in hashtags[i]:
+                    hashtag_list_against.append(hash.lower())
+            else:
+                for hash in hashtags[i]:
+                    hashtag_list_none.append(hash.lower())
+    favor_count = Counter(hashtag_list_favor)
+    against_count = Counter(hashtag_list_against)
+    none_count = Counter(hashtag_list_none)
+    print "Favor: "
+    print favor_count
+    print "Against: "
+    print against_count
+    print "None: "
+    print none_count
+
+count_hashtags(TOPIC5)

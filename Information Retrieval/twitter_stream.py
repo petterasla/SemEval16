@@ -1,10 +1,12 @@
 # To run this code, first edit config.py with your configuration, then:
 #
 # mkdir data
-# python twitter_stream_download.py -q apple -d data
+# python twitter_stream.py -q '#climate'
 # 
 # It will produce the list of tweets for the query "apple" 
 # in the file data/stream_apple.json
+#
+# https://gist.github.com/bonzanini/af0463b927433c73784d
 
 import tweepy
 from tweepy import Stream
@@ -33,21 +35,24 @@ def get_parser():
 
 class MyListener(StreamListener):
     """Custom StreamListener for streaming data."""
-
     def __init__(self, data_dir, query):
         query_fname = format_filename(query)
         self.outfile = "stream_%s.json" % (query_fname)
 
     def on_data(self, data):
-        try:
-            with open(self.outfile, 'a') as f:
-                f.write(data)
-                print(data)
-                return True
-        except BaseException as e:
-            print("Error on_data: %s" % str(e))
-            time.sleep(5)
-        return True
+        tweet = json.loads(data)
+        if (not tweet['retweeted'] and "RT @" not in tweet['text'])  \
+            and "RT@" not in tweet['text']  \
+                and "RT " not in tweet['text']:
+            try:
+                with open(self.outfile, 'a') as f:
+                    f.write(data)
+                    print(data)
+                    return True
+            except BaseException as e:
+                print("Error on_data: %s" % str(e))
+                time.sleep(5)
+            return True
 
     def on_error(self, status):
         print(status)

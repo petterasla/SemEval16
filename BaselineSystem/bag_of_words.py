@@ -12,17 +12,16 @@ TOPIC3 = "Feminist Movement"
 TOPIC4 = "Hillary Clinton"
 TOPIC5 = "Legalization of Abortion"
 
-topic = TOPIC              # Select a topic that will be used as data
-test_topic = TOPIC5         # Select a topic that will be used for testing
+topic = TOPIC2              # Select a topic that will be used as data
+test_topic = TOPIC2         # Select a topic that will be used for testing
 ratio = 0.3                # Decide a size in percentage as test ratio
-use_tf_idf = 1              # 1 = true, 0 = false
+use_tf_idf = 0              # 1 = true, 0 = false
 
 # ****** Creating training and test set ******
 print "Creating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
 # Splitting data into train and test data.
-train_data, test_data = ptd.train_test_split(ptd.getTopicData(topic), ratio, test_topic)
-
+train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.3, 0.3)
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
 # Getting all the hashtags from each tweet
@@ -33,7 +32,7 @@ for index in range(len(train_hashtags)):
     for word in words:
         train_tweets[index] = train_tweets[index] + " " + word + " "
 
-# Training and test set
+# Training set
 train = train_tweets
 train_labels = ptd.getAllStances(train_data)
 print "Length of train set and labels should be the same: " + str(len(train)) + " == " + str(len(train_labels))
@@ -81,7 +80,8 @@ else:
     # Transforming to a matrix with counted number of words
     train_data_features = vectorizer.fit_transform(train)
     test_data_features = vectorizer.transform(test)
-
+    freqs = [(word, train_data_features.getcol(idx).sum()) for word, idx in vectorizer.vocabulary_.items()]
+    print sorted (freqs, key = lambda x: -x[1])[:10]
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
     test_data_features = test_data_features.toarray()
@@ -117,7 +117,6 @@ dummy_predictions = clf_dummy.predict(test_data_features)
 
 #print 'Score from CV: ' + str(scores)
 #print 'Score from test set: ' + str(clf.score(test_data_features, test_labels))
-
 
 
 #************ Write to file ******************

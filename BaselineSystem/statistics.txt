@@ -21,7 +21,7 @@ Top 5 hashtags:                                 FAVOR                   FAVOR   
                                                 36: #god                 3: #carbontaxscam              54: #gamergate          27: #wakeupamerica      34: #prolifeyouth
                                                 19: #islam               3: #chemtrails                 14: #feminist           23: #tcot               10: #alllivesmatter
                                                 11: #love                1: #fraud                      11: #spankafeminist     21: #hillaryclinton      9: #scotus
-                                                11: #teamjesus           1: #anthropocene                9: #feminists          14: #benghazi            9: #ccot
+                                                11: #teamjesus           1: #anthropogene                9: #feminists          14: #benghazi            9: #ccot
                                                  9: #bible               1: #liberty                     6: #yesallwomen        13: #lol                 8: #prolifegen
 
                                                 NONE                    NONE                            NONE                    NONE                    NONE
@@ -34,14 +34,14 @@ Top 5 hashtags:                                 FAVOR                   FAVOR   
 Top 10 term frequency:
                                                 99: god                 49: climate                     99: women              132: hillary             78: life
                                                 49: love                25: change                      84: feminist            52: clinton             76: abortion
-                                                28: jesus               15: like                        67: feminists           42: america             38: pro
-                                                26: religion            14: global                      48: men                 35: vote                34: love
-                                                22: lord                12: peace                       47: gate                29: wake                32: marriage
-                                                22: rt                  12: future                      47: gamer               23: love                31: right
+                                                28: jesus               17: need                        67: feminists           42: america             38: pro
+                                                26: religion            15: like                      48: men                 35: vote                34: love
+                                                22: lord                14: global                       47: gate                29: wake                32: marriage
+                                                22: rt                  13: future                      47: gamer               23: love                31: right
                                                 20: faith               12: attenborough                46: feminism            22: president           31: unborn
-                                                20: life                11: pope                        41: don                 21: lol                 30: just
-                                                20: people              11: water                       38: like                20: tcot                30: youth
-                                                17: wins                11: need                        31: just                19: people              27: people
+                                                20: life                12: right                        41: don                 21: lol                 30: just
+                                                20: people              12: water                       38: like                20: tcot                30: youth
+                                                17: wins                12: say                        31: just                19: people              27: people
 #########################################################################################################################################################################
 
 Results when trained on whole set. Using 30% as test set under the given topic
@@ -78,7 +78,7 @@ AGAINST: prec/rec/f-sc                          0.6591/0.9457/0.7768    0.0000/0
 Macro F:                                        0.5662                  0.3525                          0.3782                  0.3205                  0.5054
 
 
-###################################################################################################################################################
+#######################################################################################################################################################################################
 
 
 SVM:

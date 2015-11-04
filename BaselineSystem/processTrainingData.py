@@ -2,7 +2,10 @@ import re
 import random
 import numpy as np
 from nltk.stem.porter import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
 from collections import Counter
+import os
+import json
 
 TOPIC = "All"
 TOPIC1 = "Atheism"
@@ -230,6 +233,41 @@ def train_test_split(data, percentage, test_topic):
         return [train, test]
 
 
+def train_test_split_on_stance(data, test_data, favor_p, against_p, none_p):
+    """
+    This method takes a data list and splits into a training set and test set. It uses the percentage parameter
+    to set the size of each set based on their stance. i.e: FAVOR = 30, AGAINST = 15 and NONE = 45 and percentage
+    is set to 0.33, then the test set will consist of 10 FAVOR, 5 AGAINST and 15 NONE.
+
+    :param data:            A list with data that want to be split in training and test set
+    :param test_data:       A list with the test data want to split up.
+    :param favor_p:         How big you want the FAVOR test set to be in percentage.
+    :param against_p:       How big you want the AGAINST test set to be in percentage.
+    :param none_p:          How big you want the NONE test set to be in percentage.
+    :return:                Returns a list [train, test] which include a split of training and test data
+    """
+    favor_list, against_list, none_list = [], [], []
+    for t in test_data:
+        if (t[3] == "FAVOR"):
+            favor_list.append(t)
+        elif (t[3] == "AGAINST"):
+            against_list.append(t)
+        else:
+            none_list.append(t)
+    k_favor, k_against, k_none = int(favor_p*len(favor_list)), int(against_p*len(against_list)), int(none_p*len(none_list))
+    favor_test, against_test, none_test = favor_list[:k_favor], against_list[:k_against], none_list[:k_none]
+    test = against_test + favor_test + none_test
+    test_ids = [test[x][0] for x in range(len(test))]
+    train = [data[x] for x in range(len(data)) if data[x][0] not in test_ids]
+    print "len of data: "+ str(len(data)) + "\t len of favor: " + str(len(favor_list)) + "\t len of against: " \
+          + str(len(against_list))+ "\t len of none: " + str(len(none_list)) + \
+          "\t Total: " + str(len(favor_list) + len(against_list) + len(none_list))
+    print "len of train: "+ str(len(train)) + "\t len of test: " + str(len(test)) + "\t total: " \
+          + str(len(train) + len(test))
+    return [train, test]
+
+#train_test_split_on_stance(getTopicData(TOPIC2), TOPIC2, 0.2, 0.5, 0.3)
+
 def stemming(data):
     pt = PorterStemmer()
     new_data = []
@@ -249,6 +287,26 @@ def stemming(data):
 #print data
 #k = stemming(data)
 #print k
+
+def lemmatizing(data):
+    lem = WordNetLemmatizer()
+    new_data = []
+    for tweet in data:
+        tweet = tweet.lower()
+        words = tweet.split(" ")
+        lemmatized = []
+        for word in words:
+            lemmatized.append(lem.lemmatize(word))
+        new_tweet = ""
+        for word in lemmatized:
+            new_tweet = new_tweet + " " + word
+        new_data.append(new_tweet)
+    return new_data
+
+#data = getAllTweets(getTopicData(TOPIC2))
+#print data[5]
+#k = lemmatizing(data)
+#print k[5]
 
 def count_hashtags(topic):
 
@@ -280,4 +338,34 @@ def count_hashtags(topic):
     print "None: "
     print none_count
 
-count_hashtags(TOPIC5)
+#count_hashtags(TOPIC5)
+
+
+
+def processAbstracts():
+    category_approval = 8       # Including the number: 2, 3, 4, 5, 6, 7. See TCP paper for more info.
+    favor_endorsement = 2       # Including the number: 1, 2 or 3
+    against_endorsement = 5     # Including the number: 5, 6 or 7
+    #path = os.path.abspath('')
+    with open("../BaselineSystem/abstracts_with_meta.txt", "r") as articleJson:
+        articleInfo = json.load(articleJson)
+        articleJson.close()
+    favor_abstracts = []
+    against_abstracts = []
+    for article in articleInfo:
+        #print article["Status"]["isMetaTitleEqualToOriginal"]
+        if (article["Status"]["isMetaTitleEqualToOriginal"] == "False"):
+            continue
+        else:
+            if (int(article["Category"]) >= category_approval):
+                continue
+            else:
+                if (int(article["Endorsement"]) <= favor_endorsement):
+                    favor_abstracts.append(article["Abstract"])
+                elif (int(article["Endorsement"]) >= against_endorsement):
+                    against_abstracts.append(article["Abstract"])
+
+    print "favor abstracts: " + str(len(favor_abstracts)) + "\t against abastracts: " + str(len(against_abstracts))
+    return [favor_abstracts, against_abstracts]
+
+#processAbstracts()

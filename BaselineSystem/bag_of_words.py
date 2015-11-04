@@ -21,7 +21,7 @@ use_tf_idf = 0              # 1 = true, 0 = false
 print "Creating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
 # Splitting data into train and test data.
-train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.3, 0.3)
+train_data, test_data = ptd.train_test_split(ptd.getTopicData(topic), ratio, test_topic )
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
 # Getting all the hashtags from each tweet
@@ -80,8 +80,7 @@ else:
     # Transforming to a matrix with counted number of words
     train_data_features = vectorizer.fit_transform(train)
     test_data_features = vectorizer.transform(test)
-    freqs = [(word, train_data_features.getcol(idx).sum()) for word, idx in vectorizer.vocabulary_.items()]
-    print sorted (freqs, key = lambda x: -x[1])[:10]
+
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
     test_data_features = test_data_features.toarray()

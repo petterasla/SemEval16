@@ -14,8 +14,9 @@ TOPIC5 = "Legalization of Abortion"
 
 topic = TOPIC2              # Select a topic that will be used as data
 test_topic = TOPIC2         # Select a topic that will be used for testing
-ratio = 0.3                # Decide a size in percentage as test ratio
 use_tf_idf = 0              # 1 = true, 0 = false
+use_lemming = 0             # 1 = true, 0 = false
+use_abstracts = 1           # 1 = true, 0 = false
 
 # ****** Creating training and test set ******
 print "Creating training set with topic: " + str(topic)
@@ -32,19 +33,26 @@ for index in range(len(train_hashtags)):
     for word in words:
         train_tweets[index] = train_tweets[index] + " " + word + " "
 
-favor_abs, against_abs = ptd.processAbstracts()
-for abs in against_abs:
-    train_tweets.append(abs)
-#for abs in favor_abs:
-#    train_tweets.append(abs)
+train_labels = ptd.getAllStances(train_data)
+# Adding additional data fomr TCP: Against data
+if (use_abstracts):
+    favor_abs, against_abs = ptd.processAbstracts()
+    for abs in against_abs:
+        train_tweets.append(abs)
+    #for abs in favor_abs:
+    #    train_tweets.append(abs)
+    for abs in against_abs:
+        train_labels.append("AGAINST")
+    #for abs in favor_abs:
+    #   train_labels.append("FAVOR")
 
 # Lemmatizing the tweets
-train = ptd.lemmatizing(train_tweets)
-train_labels = ptd.getAllStances(train_data)
+if (use_lemming):
+    train = ptd.lemmatizing(train_tweets)
+else:
+    train = train_tweets
 
-# Adding additional data fomr TCP: Against data
-for abs in against_abs:
-    train_labels.append("AGAINST")
+
 print "Length of train set and labels should be the same: " + str(len(train)) + " == " + str(len(train_labels))
 
 # ************ Creating test set (not used if cross_validation.train_test_split is used below)************
@@ -56,7 +64,10 @@ for index in range(len(test_hashtags)):
         test_tweets[index] = test_tweets[index] + " " + word + " "
 
 # Lemmatizing
-test = ptd.lemmatizing(test_tweets)
+if (use_lemming):
+    test = ptd.lemmatizing(test_tweets)
+else:
+    test = test_tweets
 test_labels = ptd.getAllStances(test_data)
 print "Length of test set and labels should be the same: " + str(len(test)) + " == " + str(len(test_labels))
 # ****** Create a bag of words from the training set ******
@@ -90,6 +101,9 @@ else:
     # Transforming to a matrix with counted number of words
     train_data_features = vectorizer.fit_transform(train)
     test_data_features = vectorizer.transform(test)
+
+    freqs = [(word, train_data_features.getcol(idx).sum()) for word, idx in vectorizer.vocabulary_.items()]
+    print sorted (freqs, key = lambda x: -x[1])[:10]
 
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()

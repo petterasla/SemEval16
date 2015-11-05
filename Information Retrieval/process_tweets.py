@@ -29,6 +29,7 @@ def removeDuplicates(filename):
     nf.close()
     print "Removed " + str(len(readTweets(filename))-len(readTweets(filename+'_clean'))) + " tweets"
 
+# Examples:
 #print readTweets('stream__climate')
 #removeDuplicates('stream__chemtrails')
 #removeDuplicates('stream__climate')

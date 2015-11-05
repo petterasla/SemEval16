@@ -6,6 +6,7 @@
 # It will produce the list of tweets for the query "apple" 
 # in the file data/stream_apple.json
 #
+# Modified version of:
 # https://gist.github.com/bonzanini/af0463b927433c73784d
 
 import tweepy
@@ -41,6 +42,7 @@ class MyListener(StreamListener):
 
     def on_data(self, data):
         tweet = json.loads(data)
+        # Exclude retweets
         if (not tweet['retweeted'] and "RT @" not in tweet['text'])  \
             and "RT@" not in tweet['text']  \
                 and "RT " not in tweet['text']:

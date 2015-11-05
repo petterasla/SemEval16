@@ -35,13 +35,13 @@ Top 10 term frequency:
                                                 99: god                 49: climate                     99: women              132: hillary             78: life
                                                 49: love                25: change                      84: feminist            52: clinton             76: abortion
                                                 28: jesus               17: need                        67: feminists           42: america             38: pro
-                                                26: religion            15: like                      48: men                 35: vote                34: love
-                                                22: lord                14: global                       47: gate                29: wake                32: marriage
+                                                26: religion            15: like                        48: men                 35: vote                34: love
+                                                22: lord                14: global                      47: gate                29: wake                32: marriage
                                                 22: rt                  13: future                      47: gamer               23: love                31: right
                                                 20: faith               12: attenborough                46: feminism            22: president           31: unborn
-                                                20: life                12: right                        41: don                 21: lol                 30: just
+                                                20: life                12: right                       41: don                 21: lol                 30: just
                                                 20: people              12: water                       38: like                20: tcot                30: youth
-                                                17: wins                12: say                        31: just                19: people              27: people
+                                                17: wins                12: say                         31: just                19: people              27: people
 #########################################################################################################################################################################
 
 Results when trained on whole set. Using 30% as test set under the given topic

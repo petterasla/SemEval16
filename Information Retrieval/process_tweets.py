@@ -19,8 +19,6 @@ def removeDuplicates(filename):
 
     uniques = {x['text']: x for x in jsons}
 
-    print uniques.values()
-
     # write to new json file
     with open(filename + '_clean.json' ,'w') as nf:
         for js in uniques.values():
@@ -29,11 +27,10 @@ def removeDuplicates(filename):
 
     f.close()
     nf.close()
-    print len(readTweets(filename))
-    print len(readTweets(filename+'_clean'))
+    print "Removed " + str(len(readTweets(filename))-len(readTweets(filename+'_clean'))) + " tweets"
 
 #print readTweets('stream__climate')
-#print removeDuplicates('stream__chemtrails')
-#print removeDuplicates('stream__climate')
-#print removeDuplicates('stream__climatechange')
-#print removeDuplicates('stream__environment')
+#removeDuplicates('stream__chemtrails')
+#removeDuplicates('stream__climate')
+#removeDuplicates('stream__climatechange')
+#removeDuplicates('stream__environment')

@@ -1,11 +1,12 @@
 import re
 import random
 import numpy as np
-from nltk.stem.porter import PorterStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
+#from nltk.stem.porter import PorterStemmer
+#from nltk.stem.wordnet import WordNetLemmatizer
 from collections import Counter
 import os
 import json
+import unicodedata
 
 TOPIC = "All"
 TOPIC1 = "Atheism"
@@ -369,3 +370,30 @@ def processAbstracts():
     return [favor_abstracts, against_abstracts]
 
 #processAbstracts()
+
+def convertStancesToNumbers(allStances):
+    numberedStances = []
+
+    for i in range(len(allStances)):
+        if allStances[i] == u'FAVOR\r':
+            numberedStances.append(2)
+        elif allStances[i] == u'NONE\r':
+            numberedStances.append(1)
+        else:
+            numberedStances.append(0)
+
+    return numberedStances
+
+
+def convertStancesToText(allNumberedStances):
+    textStances = []
+
+    for i in range(len(allNumberedStances)):
+        if allNumberedStances[i] == 2:
+            textStances.append("FAVOR")
+        elif allNumberedStances[i] == 1:
+            textStances.append("NONE")
+        else:
+            textStances.append("AGAINST")
+
+    return textStances

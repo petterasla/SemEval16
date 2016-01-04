@@ -1,0 +1,29 @@
+SemEval:
+
+4. januar:
+    - Manuelt klassifisert noen få tweets i filen "stream__climatechange_clean.json" til bruk i label prop
+     for å se om den klarer å klassifisere riktig. Veldig vanskelig å finne tweets som er against.
+     Jeg tenkte å trene med 15 fra hver klasse, og teste med 5 fra hver klasse ("NONE" er tatt fra opprinnelig treningsset).
+     == Resultatet viste seg å bli "NONE" eller "FAVOR" klassifisert... Altså vanskelig å predicte against.
+
+     Tweetene jeg har manuelt sjekket har id og er tatt fra "stream__climatechange_clean.json:
+     AGAINST:
+     [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136]
+
+     FAVOR:
+     [662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
+
+
+    Koden for å hente ut tweetene i label_propagation.py:
+
+    unlabeled_tweets = []
+    unlabeledTweets = [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136, 662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
+    t = twitter.readTweetsAndIDs("stream__climatechange_clean")
+    for tw in unlabeledTweets:
+        for id in t:
+            if tw == id[0]:
+                unlabeled_tweets.append(id[1])
+
+
+5. januer:
+    - Plan: Se hva sentiment lexicon kan gjøre

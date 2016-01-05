@@ -1,6 +1,7 @@
 SemEval:
 
 4. januar:
+    PETTER:
     - Manuelt klassifisert noen få tweets i filen "stream__climatechange_clean.json" til bruk i label prop
      for å se om den klarer å klassifisere riktig. Veldig vanskelig å finne tweets som er against.
      Jeg tenkte å trene med 15 fra hver klasse, og teste med 5 fra hver klasse ("NONE" er tatt fra opprinnelig treningsset).
@@ -17,13 +18,28 @@ SemEval:
     Koden for å hente ut tweetene i label_propagation.py:
 
     unlabeled_tweets = []
-    unlabeledTweets = [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136, 662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
+    unlabeledTweets = [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136,
+                        662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
     t = twitter.readTweetsAndIDs("stream__climatechange_clean")
     for tw in unlabeledTweets:
         for id in t:
             if tw == id[0]:
                 unlabeled_tweets.append(id[1])
 
+    HENRIK:
+    - Laget ny og forbedret labelprop. Predicter nå alle klasser, men gjør alle av de manuelt labelede til in favor og
+    ikke alle som blir imot gir mening. Foreslår at vi fortsatt benytter oss av den og ser hvordan det påvirker resultatet.
+    (kan teste med forskjellige tweets osv.)
+    Litt av problemet tror jeg ligger i språket kan variere så utrolig mye at vi trenger noen features som kan gjelder alle.
+    Vi kan derfor se litt på de som jeg har listet i features.txt.
+
+    - Laget liste med features som kan/bør brukes i klassifisering (og kanskje i label propagation) se features.txt.
+
 
 5. januer:
-    - Plan: Se hva sentiment lexicon kan gjøre
+    Plan:
+    PETTER:
+     -Se hva sentiment lexicon kan gjøre
+
+    HENRIK:
+     -Se på features og gå over koden.

@@ -39,7 +39,18 @@ SemEval:
 5. januer:
     Plan:
     PETTER:
-     -Se hva sentiment lexicon kan gjøre
+     -Se hva sentiment lexicon kan gjøre:
+      Så langt prøvd å kjøre noen tweets (spesielt 'against' tweets) på algoritmen SentiStrength (http://sentistrength.wlv.ac.uk).
+        Ikke veldig begeistret for resultatene. Virker som det er vanskelig å komme med en slutning for sammenheng
+        mellom positivitet/negativitet og ståsted ut i fra SemEval treningsdata.
+      Har også lastet ned Stanfords CoreNLP for å teste algoritmen Deeply Moving (sentiment analysis for filmanmeldelser).
+        Testene gjort mot 'against' her ble ofte klassifisert som negativt (hvilket kunne vært positivt), men dessverre ble
+        altfor mange 'favor' også negative. Dette er ofte på grunn av kontekst i teksten. i.e:
+        - [against] folk mener ofte at climate change people er dumme etc.. [negativ sentiment]
+        - [favor]   mens andre mener at regjeringen er håpløse etc.. [negativ sentiment]
+      Resultatene fra testene tilsier at jeg ikke ser nytten av å implementere/importere et sentiment leksikon.
+
+
 
     HENRIK:
      -Se på features og gå over koden.

@@ -4,11 +4,22 @@ import numpy as np
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.sentiment import vader as vader
+# When using vader.SentimentIntensityAnalyzer() sentiment methods, you might have to download and store this in
+# /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/nltk/sentiment/vader_lexicon.txt'
+# https://github.com/nltk/nltk/blob/develop/nltk/sentiment/vader_lexicon.txt
+"""
+If you use the VADER sentiment analysis tools, please cite:
+
+Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for
+Sentiment Analysis of Social Media Text. Eighth International Conference on
+Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+"""
 from nltk.tokenize import word_tokenize
 from collections import Counter
 import os
 import json
 import unicodedata
+import string
 
 
 TOPIC = "All"
@@ -258,9 +269,9 @@ def train_test_split_on_stance(data, test_data, favor_p, against_p, none_p):
     """
     favor_list, against_list, none_list = [], [], []
     for t in test_data:
-        if (t[3] == u'FAVOR\r'):
+        if (t[3] == 'FAVOR'):
             favor_list.append(t)
-        elif (t[3] == u'AGAINST\r'):
+        elif (t[3] == 'AGAINST'):
             against_list.append(t)
         else:
             none_list.append(t)
@@ -446,3 +457,70 @@ def numberOfTokensFeature(text):
     :return:            Integer
     """
     return len(word_tokenize(text))
+
+def numberOfCapitalWords(text):
+    """
+    Finds the number of capital words in a tweet
+
+    :param text:        Tweet as string
+    :return:            Integer number of capital words
+    """
+    capitalized = []
+    if vader.allcap_differential(text.split(" ")):
+        for word in text.split(" "):
+            if word.isupper():
+                capitalized.append(word)
+        return len(capitalized)
+    else:
+        return 0
+
+def numberOfNonSinglePunctMarks(text):
+    """
+    Finds the number of non-single punctuation marks in a tweet
+
+    :param text:        Tweet as a string
+    :return:            A list where first element is an integer number of punctuation marks and last element
+                        is whether the last punctuation mark is ! or ? (either 0 or 1)
+    """
+    counter = 0
+    isQuestionMarkOrExclamationMarkLast = 0
+    for word in text.split(" "):
+        for i in range(len(word)):
+            # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+            if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
+                counter += 1
+                if word[len(word)-1] in "!?":
+                    isQuestionMarkOrExclamationMarkLast = 1
+                break           # Break here otherwise a word like: "hello!!!!" will count as 3
+
+    return [counter, isQuestionMarkOrExclamationMarkLast]
+
+#print numberOfNonSinglePunctMarks("hei hei!!#% Dette er en test !#!")
+
+def numberOfLengtheningWords(text):
+    """
+    Counts the number of words that are longer than usual like: cooool.
+    It will count every word that has (at least) three of the same consecutive letters
+
+    :param text:        Tweet as a string
+    :return:            Integer number of lengthening words.
+    """
+    counter = 0
+    for word in text.split(" "):
+        for i in range(len(word)):
+            letter = word[i]
+            if (len(word) > 2) and (i < len(word)-2) and (word[i+1] == letter) and (word[i+2] == letter):
+                counter +=1
+                break
+    return counter
+
+def determineSentiment(text):
+    """
+    Determines the sentiment of a tweet based on the vader module
+
+    :param text:        Tweet as a string
+    :return:            Returns a dict of {neg:x, neu:y, pos:z, compound:w}
+    """
+    return vader.SentimentIntensityAnalyzer().polarity_scores(text)
+
+#print numberOfLengtheningWords("hei iii! Dette er en nyyy ttteeest")

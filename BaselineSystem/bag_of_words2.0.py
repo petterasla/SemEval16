@@ -16,24 +16,28 @@ TOPIC5 = "Legalization of Abortion"
 
 # ****** Settings ******************************************************************************************************
 # Topics
-topic = TOPIC2              # Select a topic that will be used as data
-test_topic = TOPIC2         # Select a topic that will be used for testing
+topic = TOPIC2                  # Select a topic that will be used as data
+test_topic = TOPIC2             # Select a topic that will be used for testing
 
 # Pre-processing
-use_tf_idf = 0              # 1 = true, 0 = false
-use_lemming = 1             # 1 = true, 0 = false
+use_tf_idf = 0                  # 1 = true, 0 = false
+use_lemming = 0                 # 1 = true, 0 = false
 
 # Training
-use_abstracts = 0           # 1 = true, 0 = false
+use_abstracts = 0               # 1 = true, 0 = false
 
 # Features
-use_negation = 1            # 1 = true, 0 = false
-use_lengthOfTweet = 1       # 1 = true, 0 = false
-use_numberOfTokens = 1      # 1 = true, 0 = false
+use_negation = 1                # 1 = true, 0 = false
+use_lengthOfTweet = 1           # 1 = true, 0 = false
+use_numberOfTokens = 1          # 1 = true, 0 = false
+use_numberOfCapitalWords = 1    # 1 = true, 0 = false
+use_numberOfPunctMarks = 1      # 1 = true, 0 = false
+use_numberOfLengtheningWord = 1 # 1 = true, 0 = false
+use_sentimentAnalyzer = 1       # 1 = true, 0 = false
 
 features_used = use_negation + use_lengthOfTweet + use_numberOfTokens
 
-use_bigram = 1              # 1 = true, 0 = false
+use_trigram = 1              # 1 = true, 0 = false
 
 
 # ****** Creating training and test set and preprocess the text ********************************************************
@@ -56,6 +60,7 @@ for index in range(len(train_hashtags)):
         train_tweets[index] = train_tweets[index] + " " + word + " "
 
 train_labels = ptd.getAllStances(train_data)
+print "train labels:"
 
 # Adding additional data fomr TCP: Against data
 if (use_abstracts):
@@ -102,9 +107,11 @@ print "Creating the bag of words..."
 vectorizer1Gram = CountVectorizer(analyzer = "word",         # Split the corpus into words
                                     ngram_range = (1,1),     # N-gram: (1,1) = unigram, (2,2) = bigram
                                     stop_words = "english")  # Built-in list of english stop words.)
+# Stop words list can be found at:
+#https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/feature_extraction/stop_words.py
 vectorizer2Gram = CountVectorizer(analyzer = "word",         # Split the corpus into words
                                   ngram_range = (3,3),     # N-gram: (1,1) = unigram, (2,2) = bigram
-                                  stop_words = "english")  # Built-in list of english stop words.)
+                                  stop_words = "english")  # Built-in list of english stop words.
 
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
@@ -137,12 +144,12 @@ else:
     train_data_features = train_data_features.toarray()
     test_data_features = test_data_features.toarray()
 
-    if use_bigram:
-        bigram_train_data_features = vectorizer2Gram.fit_transform(train)
-        bigram_test_data_features = vectorizer2Gram.transform(test)
+    if use_trigram:
+        trigram_train_data_features = vectorizer2Gram.fit_transform(train)
+        trigram_test_data_features = vectorizer2Gram.transform(test)
 
-        train_data_features = np.c_[train_data_features, bigram_train_data_features.toarray()]
-        test_data_features = np.c_[test_data_features, bigram_test_data_features.toarray()]
+        train_data_features = np.c_[train_data_features, trigram_train_data_features.toarray()]
+        test_data_features = np.c_[test_data_features, trigram_test_data_features.toarray()]
 
 # ******* Adding additional features ***********************************************************************************
 print "Addding additional features..."
@@ -166,22 +173,88 @@ if features_used > 0:
             else:
                 trainTable.append([ptd.numberOfTokensFeature(train[i])])
 
+        if use_numberOfCapitalWords:
+            if len(trainTable) > 0:
+                trainTable[i].append(ptd.numberOfCapitalWords(train[i]))
+            else:
+                trainTable.append(ptd.numberOfCapitalWords(train[i]))
+
+        if use_numberOfPunctMarks:
+            if len(trainTable) > 0:
+                trainTable[i].append(ptd.numberOfNonSinglePunctMarks(train[i])[0])
+                trainTable[i].append(ptd.numberOfNonSinglePunctMarks(train[i])[1])
+            else:
+                trainTable.append(ptd.numberOfNonSinglePunctMarks(train[i])[0])
+                trainTable.append(ptd.numberOfNonSinglePunctMarks(train[i])[1])
+
+        if use_numberOfLengtheningWord:
+            if len(trainTable) > 0:
+                trainTable[i].append(ptd.numberOfLengtheningWords(train[i]))
+            else:
+                trainTable.append(ptd.numberOfLengtheningWords(train[i]))
+
+        if use_sentimentAnalyzer:
+            sentiments = ptd.determineSentiment(train[i])
+            if len(trainTable) > 0:
+                #trainTable[i].append(sentiments['compound'])
+                trainTable[i].append(sentiments['neg'])
+                trainTable[i].append(sentiments['neu'])
+                trainTable[i].append(sentiments['pos'])
+            else:
+                #trainTable[i].append(sentiments['compound'])
+                trainTable.append(sentiments['neg'])
+                trainTable.append(sentiments['neu'])
+                trainTable.append(sentiments['pos'])
+
     for i in range(len(test)):
         # Adding a feature on whether the tweet contains negated segments
         if use_negation:
             testTable.append([ptd.determineNegationFeature(test[i])])
 
         if use_lengthOfTweet:
-            if len(trainTable) > 0:
+            if len(testTable) > 0:
                 testTable[i].append(ptd.lengthOfTweetFeature(train[i]))
             else:
                 testTable.append([ptd.lengthOfTweetFeature(train[i])])
 
         if use_numberOfTokens:
-            if len(trainTable) > 0:
+            if len(testTable) > 0:
                 testTable[i].append(ptd.numberOfTokensFeature(train[i]))
             else:
                 testTable.append([ptd.numberOfTokensFeature(train[i])])
+
+        if use_numberOfCapitalWords:
+            if len(testTable) > 0:
+                testTable[i].append(ptd.numberOfCapitalWords(train[i]))
+            else:
+                testTable.append(ptd.numberOfCapitalWords(train[i]))
+
+        if use_numberOfPunctMarks:
+            if len(testTable) > 0:
+                testTable[i].append(ptd.numberOfNonSinglePunctMarks(train[i])[0])
+                testTable[i].append(ptd.numberOfNonSinglePunctMarks(train[i])[1])
+            else:
+                testTable.append(ptd.numberOfNonSinglePunctMarks(train[i])[0])
+                testTable.append(ptd.numberOfNonSinglePunctMarks(train[i])[1])
+
+        if use_numberOfLengtheningWord:
+            if len(testTable) > 0:
+                testTable[i].append(ptd.numberOfLengtheningWords(train[i]))
+            else:
+                testTable.append(ptd.numberOfLengtheningWords(train[i]))
+
+        if use_sentimentAnalyzer:
+            sentiments = ptd.determineSentiment(train[i])
+            if len(testTable) > 0:
+                #testTable[i].append(sentiments['compound'])
+                testTable[i].append(sentiments['neg'])
+                testTable[i].append(sentiments['neu'])
+                testTable[i].append(sentiments['pos'])
+            else:
+                #testTable.append(sentiments['compound'])
+                testTable.append(sentiments['neg'])
+                testTable.append(sentiments['neu'])
+                testTable.append(sentiments['pos'])
 
     train_data_features = np.c_[train_data_features, trainTable]
     test_data_features = np.c_[test_data_features, testTable]

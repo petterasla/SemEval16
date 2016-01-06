@@ -50,7 +50,21 @@ SemEval:
         - [favor]   mens andre mener at regjeringen er håpløse etc.. [negativ sentiment]
       Resultatene fra testene tilsier at jeg ikke ser nytten av å implementere/importere et sentiment leksikon.
 
-
-
     HENRIK:
      -Se på features og gå over koden.
+     Jeg har implementert tre features: negation (om det finnes nektelse eller ei i tweeten), lengthOfTweet (normalisert
+     etter makslengde på tweet) og numberOfTokens (antall ord). I tillegg har jeg observert at å bruke 3-gram i tillegg
+     til unigram ga bedre resultater. Vi er nå oppe på Macro F = 0.4000 for SVM på kun klima.
+
+     Jeg har også sett på probabilities, noe som vi tenkte kunne gjøres med scikit, og det burde være mulig. Jeg har
+     fått koden til å regne de ut (kommentert ut i linje 215-217) i bag_of_words2.0, nå gjenstår bare å bruke de.
+
+     Sett over koden, fikset små bugs, og ryddet litt.
+
+6. januar:
+    HENRIK:
+    -Se på crossvalidation slik at vi får testet på en ordentlig måte.
+    -Implementere flere features.
+    -Inkludere og teste labelprop med koden vår.
+
+

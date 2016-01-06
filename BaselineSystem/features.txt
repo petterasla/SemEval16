@@ -20,9 +20,10 @@ TODO: Punctuation marks (# of non-single punctuation marks as a feature and whet
 
 TODO: Word lengthening (# of words lengthened. Example «col» lengthened to «coooooll»)
 
-TODO: Negation (# of negated segments in the document)
+DONE: Negation (# of negated segments in the document)
     - nltk.sentiment.vader.negated(input_words, include_nt=True)
         Determines if input contains negation words
+    - Have implemented but not the number of negations, just simply as stated over.
 
 TODO: Normalized unigrams (occurrence of normalized word unigrams)
     - Mener dette kan bli gjort med sklearn (i hvert fall med tf-idf: http://scikit-learn.org/stable/modules/feature_extraction.html)
@@ -30,7 +31,7 @@ TODO: Normalized unigrams (occurrence of normalized word unigrams)
 TODO: Stems (Porter stemming)
     - nltk.stem.porter
 
-TODO: Length (# of tokens in a tweet)
+DONE: Length (# of tokens in a tweet)
 
 TODO: Translate emoticons and abbreviations using dictionary
 

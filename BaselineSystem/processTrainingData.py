@@ -1,12 +1,15 @@
 import re
 import random
 import numpy as np
-#from nltk.stem.porter import PorterStemmer
-#from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.porter import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.sentiment import vader as vader
+from nltk.tokenize import word_tokenize
 from collections import Counter
 import os
 import json
 import unicodedata
+
 
 TOPIC = "All"
 TOPIC1 = "Atheism"
@@ -14,6 +17,7 @@ TOPIC2 = "Climate Change is a Real Concern"
 TOPIC3 = "Feminist Movement"
 TOPIC4 = "Hillary Clinton"
 TOPIC5 = "Legalization of Abortion"
+
 
 def processData(doc_name):
     """
@@ -45,6 +49,7 @@ def processData(doc_name):
     f.close()
     return data
 
+
 def getTopicData(topic):
     """
     Extracts the data from a given topic
@@ -62,6 +67,7 @@ def getTopicData(topic):
             topicData.append(data[i])
     return topicData
 
+
 def getAllTweets(data_file="All"):
     """
     Extracts all the tweets from the processed data
@@ -77,6 +83,8 @@ def getAllTweets(data_file="All"):
     for i in range(len(data)):
         tweets.append(data[i][2])
     return tweets
+
+
 def getAllTweetsWithoutHashOrAlphaTag(tweet_list):
     """
     Extracts all the tweets and removes the hashtags and @ tags from the processed data
@@ -133,6 +141,7 @@ def getAllStances(data_file="All"):
         stance.append(data[i][3])
     return stance
 
+
 def getAllHashtags(tweet_list):
     """
     Extracts all the hashtags from the tweets
@@ -172,6 +181,7 @@ def decryptHashtags(hashes):
 
     return wordList
 
+
 def decryptAllHashtags(hashtag_list):
     """
     Takes a list with lists of hashtags and decrypts into words using decryptHashtags(hashes).
@@ -186,27 +196,26 @@ def decryptAllHashtags(hashtag_list):
             wordList.add(word)
     return list(wordList)
 
-
 # Example use
-
 
 # Get all tweets and stances
 #allTweet = getAllTweets(getTopicData(TOPIC))
 #allStance = getAllStances(getTopicData(TOPIC5))
 
-#Get all the tweets from Climate change
+# Get all the tweets from Climate change
 #tweets = getAllTweets(getTopicData(TOPIC2))
 #parsed_tweets = getAllTweetsWithoutHashOrAlphaTag(tweets[8:10])
 
-#Get all the stance from Climate change
+# Get all the stance from Climate change
 #stance = getAllStances(getTopicData(TOPC2))
 
-#Get all the hashtags from tweets (within a topic)
+# Get all the hashtags from tweets (within a topic)
 #hashtags = getAllHashtags(getAllTweets(getTopicData(TOPIC5)))
 #hashtags_in_one_list = [hash for hashes in hashtags for hash in hashes]
 
-#Decrypt all the hashtags from the topic: Climate Change is a real consern
+# Decrypt all the hashtags from the topic: Climate Change is a real consern
 #words = decryptAllHashtags(hashtags)
+
 
 def train_test_split(data, percentage, test_topic):
     """
@@ -249,9 +258,9 @@ def train_test_split_on_stance(data, test_data, favor_p, against_p, none_p):
     """
     favor_list, against_list, none_list = [], [], []
     for t in test_data:
-        if (t[3] == "FAVOR"):
+        if (t[3] == u'FAVOR\r'):
             favor_list.append(t)
-        elif (t[3] == "AGAINST"):
+        elif (t[3] == u'AGAINST\r'):
             against_list.append(t)
         else:
             none_list.append(t)
@@ -266,8 +275,8 @@ def train_test_split_on_stance(data, test_data, favor_p, against_p, none_p):
     print "len of train: "+ str(len(train)) + "\t len of test: " + str(len(test)) + "\t total: " \
           + str(len(train) + len(test))
     return [train, test]
-
 #train_test_split_on_stance(getTopicData(TOPIC2), TOPIC2, 0.2, 0.5, 0.3)
+
 
 def stemming(data):
     pt = PorterStemmer()
@@ -283,11 +292,11 @@ def stemming(data):
         new_data.append(new_tweet)
 
     return new_data
-
 #data = getAllTweets(getTopicData(TOPIC2)[0:3])
 #print data
 #k = stemming(data)
 #print k
+
 
 def lemmatizing(data):
     lem = WordNetLemmatizer()
@@ -303,14 +312,13 @@ def lemmatizing(data):
             new_tweet = new_tweet + " " + word
         new_data.append(new_tweet)
     return new_data
-
 #data = getAllTweets(getTopicData(TOPIC2))
 #print data[5]
 #k = lemmatizing(data)
 #print k[5]
 
-def count_hashtags(topic):
 
+def count_hashtags(topic):
     tweets = getAllTweets(getTopicData(topic))
     stance = getAllStances(getTopicData(topic))
     hashtags = getAllHashtags(tweets)
@@ -338,9 +346,7 @@ def count_hashtags(topic):
     print against_count
     print "None: "
     print none_count
-
 #count_hashtags(TOPIC5)
-
 
 
 def processAbstracts():
@@ -368,12 +374,17 @@ def processAbstracts():
 
     print "favor abstracts: " + str(len(favor_abstracts)) + "\t against abastracts: " + str(len(against_abstracts))
     return [favor_abstracts, against_abstracts]
-
 #processAbstracts()
 
-def convertStancesToNumbers(allStances):
-    numberedStances = []
 
+def convertStancesToNumbers(allStances):
+    """
+    Converts textual stance (FAVOR, NONE, AGAINST) to numbers (2, 1, 0)
+
+    :param doc_name:    List of textual stances
+    :return:            List of numeric stanecs
+    """
+    numberedStances = []
     for i in range(len(allStances)):
         if allStances[i] == u'FAVOR\r':
             numberedStances.append(2)
@@ -386,8 +397,13 @@ def convertStancesToNumbers(allStances):
 
 
 def convertStancesToText(allNumberedStances):
-    textStances = []
+    """
+    Converts numeric stance (2, 1, 0) to textual stance (FAVOR, NONE, AGAINST)
 
+    :param doc_name:    List of numeric stances
+    :return:            List of textual stanecs
+    """
+    textStances = []
     for i in range(len(allNumberedStances)):
         if allNumberedStances[i] == 2:
             textStances.append("FAVOR")
@@ -397,3 +413,36 @@ def convertStancesToText(allNumberedStances):
             textStances.append("AGAINST")
 
     return textStances
+
+def determineNegationFeature(text):
+    """
+    Creates feature (0 or 1) for whether the tweet contains negated segments or not
+
+    :param doc_name:    Tweet as string
+    :return:            Binary value (0 or 1)
+    """
+    feature = vader.negated(text, include_nt=True)
+    if feature:
+        return 1
+    else:
+        return 0
+
+
+def lengthOfTweetFeature(text):
+    """
+    Creates a normalized feature between 0 and 1 for the length of the tweet
+
+    :param doc_name:    Tweet as string
+    :return:            Float between 0 and 1
+    """
+    return len(text)/140.0  #Maximunm length of a tweet
+
+
+def numberOfTokensFeature(text):
+    """
+    Finds the number of tokens in a tweet
+
+    :param doc_name:    Tweet as string
+    :return:            Integer
+    """
+    return len(word_tokenize(text))

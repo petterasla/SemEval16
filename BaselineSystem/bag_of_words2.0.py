@@ -313,6 +313,8 @@ clf_dummy.fit(train_data_features, train_labels)
 print "Predicting test labels..."
 svm_predictions = clf.predict(test_data_features)
 dummy_predictions = clf_dummy.predict(test_data_features)
+# This is not accurate as the cross validation has already presented the test data to the model in training
+cv_predictions = cross_validation.cross_val_predict(clfcv, test_data_features, test_labels, cv=7)
 
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.
@@ -331,6 +333,7 @@ print "Writing gold and guesses to file..."
 data_file = test_data
 svm_guess_file = write.initFile("guess_svm")
 dummy_guess_file = write.initFile("guess_dummy")
+cross_validation_guess_file = write.initFile("guess_cv")
 gold_file = write.initFile("gold")
 for index in range(len(svm_predictions)):
     # if max(svm_predictions_probabilities[index]) > minConfidence:
@@ -340,6 +343,7 @@ for index in range(len(svm_predictions)):
 
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
+    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], cv_predictions[index], cross_validation_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
 
 svm_guess_file.close()
@@ -353,3 +357,5 @@ print "Dummy prediction score: "
 os.system("perl eval.pl gold.txt guess_dummy.txt")
 print "SVM prediction score: "
 os.system("perl eval.pl gold.txt guess_svm.txt")
+print "SVM cross validation prediction score"
+os.system("perl eval.pl gold.txt guess_cv.txt")

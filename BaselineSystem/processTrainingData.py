@@ -425,6 +425,7 @@ def convertStancesToText(allNumberedStances):
 
     return textStances
 
+
 def determineNegationFeature(text):
     """
     Creates feature (0 or 1) for whether the tweet contains negated segments or not
@@ -458,6 +459,7 @@ def numberOfTokensFeature(text):
     """
     return len(word_tokenize(text))
 
+
 def numberOfCapitalWords(text):
     """
     Finds the number of capital words in a tweet
@@ -473,6 +475,7 @@ def numberOfCapitalWords(text):
         return len(capitalized)
     else:
         return 0
+#print numberOfCapitalWords("HEI hvordan Gaar DET!")
 
 def numberOfNonSinglePunctMarks(text):
     """
@@ -494,8 +497,8 @@ def numberOfNonSinglePunctMarks(text):
                 break           # Break here otherwise a word like: "hello!!!!" will count as 3
 
     return [counter, isQuestionMarkOrExclamationMarkLast]
-
 #print numberOfNonSinglePunctMarks("hei hei!!#% Dette er en test !#!")
+
 
 def numberOfLengtheningWords(text):
     """
@@ -513,6 +516,8 @@ def numberOfLengtheningWords(text):
                 counter +=1
                 break
     return counter
+#print numberOfLengtheningWords("cooolll balll hey how arre you")
+
 
 def determineSentiment(text):
     """
@@ -522,5 +527,3 @@ def determineSentiment(text):
     :return:            Returns a dict of {neg:x, neu:y, pos:z, compound:w}
     """
     return vader.SentimentIntensityAnalyzer().polarity_scores(text)
-
-#print numberOfLengtheningWords("hei iii! Dette er en nyyy ttteeest")

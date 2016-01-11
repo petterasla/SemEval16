@@ -316,6 +316,7 @@ dummy_predictions = clf_dummy.predict(test_data_features)
 # This is not accurate as the cross validation has already presented the test data to the model in training
 cv_predictions = cross_validation.cross_val_predict(clfcv, test_data_features, test_labels, cv=7)
 
+
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.
 minConfidence = 0.75
@@ -349,6 +350,7 @@ for index in range(len(svm_predictions)):
 svm_guess_file.close()
 dummy_guess_file.close()
 gold_file.close()
+cross_validation_guess_file.close()
 
 
 #*********** Evaluate the result with the given SemEval16 script *******************************************************

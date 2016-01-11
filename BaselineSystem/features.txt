@@ -44,7 +44,7 @@ TODO: First N-grams (First unigram, first bigram, first trigram of a debate post
 
 TODO: Document statistics (Post length, #words/sentence, % pronouns, % sentiment words,…)
 
-TODO: Punctuations (Repeated punctuation symbols in a post)
+DONE: Punctuations (Repeated punctuation symbols in a post)
 
 TODO: Dependency-based features (Argument pairs as features and their generalized form)
 

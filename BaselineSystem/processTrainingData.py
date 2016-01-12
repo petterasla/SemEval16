@@ -78,6 +78,23 @@ def getTopicData(topic):
             topicData.append(data[i])
     return topicData
 
+def getTopicTestData(topic):
+    """
+    Extracts the data from a given topic
+
+    :param topic:   A string with topic name [All, Atheism, Climate Change is a Real Concern,
+                    Feminist Movement, Hillary Clinton, Legalization of Abortion]
+    :return:        A list with information about that topic
+    """
+    data = processData("SemEval2016-Task6-testdata/SemEval2016-Task6-subtaskA-testdata.txt")
+    if (topic == "All"):
+        return data
+    topicData = []
+    for i in range(len(data)):
+        if data[i][1] == topic:
+            topicData.append(data[i])
+    return topicData
+
 
 def getAllTweets(data_file="All"):
     """

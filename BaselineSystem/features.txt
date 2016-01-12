@@ -1,6 +1,6 @@
 From the paper http://www.uni-weimar.de/medien/webis/publications/papers/stein_2015b.pdf:
-TODO: N-grams (n from 1 to 4)
-    - already implemented in sklearn, nltk har ogsaa
+DONE: N-grams (n from 1 to 4)
+    - implemented unigram and trigram
 
 DONE: ALLCAPS (# of words written in caps)
 
@@ -38,7 +38,8 @@ TODO: Translate emoticons and abbreviations using dictionary
 
 From the paper https://users.soe.ucsc.edu/~maw/papers/wassa_article.pdf:
 
-TODO: N-grams (Unigrams and bigrams)
+DONE: N-grams (Unigrams and bigrams)
+    - Unigram and trigram
 
 TODO: First N-grams (First unigram, first bigram, first trigram of a debate post)
 

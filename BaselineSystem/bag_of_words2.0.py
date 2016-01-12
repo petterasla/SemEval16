@@ -283,13 +283,14 @@ clfcv = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
 all_features = np.vstack([train_data_features, test_data_features])
 all_labels = train_labels + test_labels
 
+"""
 kf = cross_validation.StratifiedKFold(all_labels, n_folds=7, shuffle=False)
 print "Cross validation scores:"
 score = cross_validation.cross_val_score(clfcv, all_features, all_labels, cv=kf, scoring='f1_macro')
 print score
 print "Cross validation mean:"
 print score.mean()
-
+"""
 
 # ******* Train SVM classifier using bag of words **********************************************************************
 print "Train classifier using 'train test split' and SVM..."
@@ -333,6 +334,11 @@ svm_predictions_probabilities = clf.predict_proba(test_data_features)
 #************ Write to file ********************************************************************************************
 print "Writing gold and guesses to file..."
 data_file = test_data
+
+# Erwin annotated test data:
+annotated = ptd.getAnnotatedData()
+erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotated])
+
 svm_guess_file = write.initFile("guess_svm")
 dummy_guess_file = write.initFile("guess_dummy")
 #cross_validation_guess_file = write.initFile("guess_cv")
@@ -346,7 +352,7 @@ for index in range(len(svm_predictions)):
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
     #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], cv_predictions[index], cross_validation_guess_file)
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
+    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], erwinsAnnotated[index], gold_file)
 
 svm_guess_file.close()
 dummy_guess_file.close()
@@ -360,5 +366,5 @@ print "Dummy prediction score: "
 os.system("perl eval.pl gold.txt guess_dummy.txt")
 print "SVM prediction score: "
 os.system("perl eval.pl gold.txt guess_svm.txt")
-print "SVM cross validation prediction score"
-os.system("perl eval.pl gold.txt guess_cv.txt")
+#print "SVM cross validation prediction score"
+#os.system("perl eval.pl gold.txt guess_cv.txt")

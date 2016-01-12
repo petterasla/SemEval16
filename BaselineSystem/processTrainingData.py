@@ -1,4 +1,5 @@
 import re
+import csv
 import random
 import numpy as np
 from nltk.stem.porter import PorterStemmer
@@ -94,6 +95,43 @@ def getTopicTestData(topic):
         if data[i][1] == topic:
             topicData.append(data[i])
     return topicData
+
+def getAnnotatedData():
+    """
+
+    :return:    returns a sorted list (by id) with Erwin's annotated data
+    """
+    f = file("../eval_semeval16_task6/test-data-annotated.csv", "rU")
+    data = [row for row in csv.reader(f)]
+    return sorted(data, key=lambda x: x[0])
+
+
+
+def convertNumberStanceToText(allNumberedStances):
+    """
+    Converts numeric stance (1, 0, -1) to textual stance (FAVOR, NONE, AGAINST)
+
+    :param doc_name:    List of numeric stances
+    :return:            List of textual stanecs
+    """
+    textStances = []
+    for i in range(len(allNumberedStances)):
+        if allNumberedStances[i] > 0:
+            textStances.append("FAVOR")
+        elif allNumberedStances[i] == 0:
+            textStances.append("NONE")
+        else:
+            textStances.append("AGAINST")
+
+    return textStances
+"""
+d = getAnnotatedData()
+f = [int(row[1]) for row in d]
+e = convertNumberStanceToText(f)
+"""
+#data = [[row[0], row[1]] for row in d]
+#s = sorted(data, key=lambda x: x[0])
+print e[:5]
 
 
 def getAllTweets(data_file="All"):

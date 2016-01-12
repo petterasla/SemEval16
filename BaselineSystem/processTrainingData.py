@@ -1,4 +1,5 @@
 import re
+import csv
 import random
 import numpy as np
 from nltk.stem.porter import PorterStemmer
@@ -80,13 +81,15 @@ def getTopicData(topic):
 
 def getTopicTestData(topic):
     """
+
     Extracts the data from a given topic
 
     :param topic:   A string with topic name [All, Atheism, Climate Change is a Real Concern,
                     Feminist Movement, Hillary Clinton, Legalization of Abortion]
     :return:        A list with information about that topic
     """
-    data = processData("SemEval2016-Task6-testdata/SemEval2016-Task6-subtaskA-testdata.txt")
+    #data = processData("SemEval2016-Task6-testdata/SemEval2016-Task6-subtaskA-testdata.txt")
+    data = processData("../eval_semeval16_task6/SemEval2016-Task6-subtaskA-testdata.txt")
     if (topic == "All"):
         return data
     topicData = []
@@ -94,6 +97,43 @@ def getTopicTestData(topic):
         if data[i][1] == topic:
             topicData.append(data[i])
     return topicData
+
+def getAnnotatedData():
+    """
+
+    :return:    returns a sorted list (by id) with Erwin's annotated data
+    """
+    f = file("../eval_semeval16_task6/test-data-annotated.csv", "rU")
+    data = [row for row in csv.reader(f)]
+    return sorted(data, key=lambda x: x[0])
+
+
+
+def convertNumberStanceToText(allNumberedStances):
+    """
+    Converts numeric stance (1, 0, -1) to textual stance (FAVOR, NONE, AGAINST)
+
+    :param doc_name:    List of numeric stances
+    :return:            List of textual stanecs
+    """
+    textStances = []
+    for i in range(len(allNumberedStances)):
+        if allNumberedStances[i] > 0:
+            textStances.append("FAVOR")
+        elif allNumberedStances[i] == 0:
+            textStances.append("NONE")
+        else:
+            textStances.append("AGAINST")
+
+    return textStances
+"""
+d = getAnnotatedData()
+f = [int(row[1]) for row in d]
+e = convertNumberStanceToText(f)
+"""
+#data = [[row[0], row[1]] for row in d]
+#s = sorted(data, key=lambda x: x[0])
+#print e[:5]
 
 
 def getAllTweets(data_file="All"):
@@ -404,6 +444,19 @@ def processAbstracts():
     return [favor_abstracts, against_abstracts]
 #processAbstracts()
 
+def createClimateLexicon(topXwords = 100):
+    """
+    This method uses (for now) abstracts pulled from The Consensus Project as data to create a lexicon
+    based on the most frequent words
+
+    :param topXwords:   Number of words that should be included in the lexicon
+    :return:            Returns a lexicon (list) containing with x most frequent words
+    """
+    with open("../BaselineSystem/abstracts_with_meta.txt", "r") as abstractInfo:
+        abstracts = json.load(abstractInfo)
+        abstractInfo.close()
+
+
 
 def convertStancesToNumbers(allStances):
     """
@@ -544,3 +597,4 @@ def determineSentiment(text):
     :return:            Returns a dict of {neg:x, neu:y, pos:z, compound:w}
     """
     return vader.SentimentIntensityAnalyzer().polarity_scores(text)
+

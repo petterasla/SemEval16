@@ -38,7 +38,7 @@ use_sentimentAnalyzer = 1       # 1 = true, 0 = false
 
 features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numberOfCapitalWords + use_numberOfPunctMarks + use_numberOfLengtheningWord + use_sentimentAnalyzer
 
-use_bigram = 1                  # 1 = true, 0 = false
+use_bigram = 0                  # 1 = true, 0 = false
 use_trigram = 1                 # 1 = true, 0 = false
 
 
@@ -290,24 +290,6 @@ if features_used > 0:
 
 #print train_data_features
 
-
-# ******* Cross validation *********************************************************************************************
-print "Train classifier using cross validation and SVM..."
-clfcv = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-                gamma=0.0, kernel='linear', max_iter=-1, probability=True,
-                random_state=None, shrinking=True, tol=0.001, verbose=False)
-
-all_features = np.vstack([train_data_features, test_data_features])
-all_labels = train_labels + test_labels
-
-"""
-kf = cross_validation.StratifiedKFold(all_labels, n_folds=7, shuffle=False)
-print "Cross validation scores:"
-score = cross_validation.cross_val_score(clfcv, all_features, all_labels, cv=kf, scoring='f1_macro')
-print score
-print "Cross validation mean:"
-print score.mean()
-"""
 
 # ******* Train SVM classifier using bag of words **********************************************************************
 print "Train SVM classifier..."

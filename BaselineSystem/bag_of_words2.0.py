@@ -46,7 +46,9 @@ print "Creating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
 
 # Splitting data into train and test data.
-train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.8, 0.3)
+#train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.3, 0.3)
+train_data = ptd.getTopicData(topic)
+test_data = ptd.getTopicTestData(topic)
 
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
@@ -314,7 +316,7 @@ print "Predicting test labels..."
 svm_predictions = clf.predict(test_data_features)
 dummy_predictions = clf_dummy.predict(test_data_features)
 # This is not accurate as the cross validation has already presented the test data to the model in training
-cv_predictions = cross_validation.cross_val_predict(clfcv, test_data_features, test_labels, cv=7)
+#cv_predictions = cross_validation.cross_val_predict(clfcv, test_data_features, test_labels, cv=7)
 
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.
@@ -333,22 +335,23 @@ print "Writing gold and guesses to file..."
 data_file = test_data
 svm_guess_file = write.initFile("guess_svm")
 dummy_guess_file = write.initFile("guess_dummy")
-cross_validation_guess_file = write.initFile("guess_cv")
+#cross_validation_guess_file = write.initFile("guess_cv")
 gold_file = write.initFile("gold")
 for index in range(len(svm_predictions)):
-    # if max(svm_predictions_probabilities[index]) > minConfidence:
-    #     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
-    # else:
-    #     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
+    #if max(svm_predictions_probabilities[index]) > minConfidence:
+    #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
+    #else:
+    #    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
 
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], cv_predictions[index], cross_validation_guess_file)
+    #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], cv_predictions[index], cross_validation_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
 
 svm_guess_file.close()
 dummy_guess_file.close()
 gold_file.close()
+#cross_validation_guess_file.close()
 
 
 #*********** Evaluate the result with the given SemEval16 script *******************************************************

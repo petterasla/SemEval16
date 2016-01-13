@@ -23,11 +23,11 @@ TOPIC5  = "Legalization of Abortion"
 
 # ****** Settings ******************************************************************************************************
 # Topics
-topic       = TOPIC                # Select a topic that will be used as data
-test_topic  = TOPIC                # Select a topic that will be used for testing
+topic       = TOPIC2                # Select a topic that will be used as data
+test_topic  = TOPIC2                # Select a topic that will be used for testing
 
 # Pre-processing
-use_tf_idf                  = 0     # 1 = true, 0 = false
+use_tf_idf                  = 1     # 1 = true, 0 = false
 use_lemming                 = 1     # 1 = true, 0 = false
 
 # Classifier
@@ -39,6 +39,8 @@ use_dummy                   = 1     # 1 = true, 0 = false
 use_abstracts               = 0     # 1 = true, 0 = false
 use_labelprop               = 1     # 1 = true, 0 = false
 use_test_train_split        = 0     # 1 = true, 0 = false
+use_bigram                  = 1     # 1 = true, 0 = false
+use_trigram                 = 1     # 1 = true, 0 = false
 
 # Features
 use_negation                = 1     # 1 = true, 0 = false   # Returns 0/1 if there exists negated words in the tweet
@@ -49,16 +51,14 @@ use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   # Returns number of 
 use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
 use_sentimentAnalyzer       = 0     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
 use_posAndNegWord           = 0     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
-# WARNING - BENEATH TAKES 4EVER (20 min)
+# WARNING - BENEATH TAKES 4EVER (20 min med kun topic=climate)
 use_numberOfPronouns        = 0     # 1 = true, 0 = false   # Returns number of pronouns in the tweet
-
 
 features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numberOfCapitalWords + use_numberOfPunctMarks \
                 + use_numberOfLengtheningWord + use_sentimentAnalyzer + use_posAndNegWord + use_numberOfPronouns
 
-use_bigram                  = 0     # 1 = true, 0 = false
-use_trigram                 = 1     # 1 = true, 0 = false
-
+# Write prediction to file
+use_writeToFile             = 0     # 1 = true, 0 = false
 
 # ****** Creating training and test set and preprocess the text ********************************************************
 print "\nCreating training set with topic: " + str(topic)
@@ -165,21 +165,41 @@ vectorizer3Gram = CountVectorizer(analyzer = "word",         # Split the corpus 
 # second, it transforms our training data into feature vectors. The input to fit_transform
 # should be a list of strings.
 if use_tf_idf:
-    print "Applying TF*IDF..."
+    print "\nApplying TF*IDF...\n"
     # Transforming to a matrix with counted number of words
-    count = vectorizer1Gram.fit_transform(train)
-    count2 = vectorizer1Gram.transform(test)
+    unigram_train_features = vectorizer1Gram.fit_transform(train)
+    unigram_test_features = vectorizer1Gram.transform(test)
 
     # Creating a TF*IDF transformer
     tfidf_transformer = TfidfTransformer()
 
     # Transforming the count matrix to the inverse (TD*IDF)
-    train_data_features = tfidf_transformer.fit_transform(count)
-    test_data_features = tfidf_transformer.transform(count2)
+    train_data_features = tfidf_transformer.fit_transform(unigram_train_features)
+    test_data_features = tfidf_transformer.transform(unigram_test_features)
 
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
     test_data_features = test_data_features.toarray()
+
+    if use_bigram:
+        bigram_train_data_features = vectorizer2Gram.fit_transform(train)
+        bigram_test_data_features = vectorizer2Gram.transform(test)
+
+        bigram_train_data_features = tfidf_transformer.fit_transform(bigram_train_data_features)
+        bigram_test_data_features = tfidf_transformer.transform(bigram_test_data_features)
+
+        train_data_features = np.c_[train_data_features, bigram_train_data_features.toarray()]
+        test_data_features = np.c_[test_data_features, bigram_test_data_features.toarray()]
+
+    if use_trigram:
+        trigram_train_data_features = vectorizer3Gram.fit_transform(train)
+        trigram_test_data_features = vectorizer3Gram.transform(test)
+
+        trigram_train_data_features = tfidf_transformer.fit_transform(trigram_train_data_features)
+        trigram_test_data_features = tfidf_transformer.transform(trigram_test_data_features)
+
+        train_data_features = np.c_[train_data_features, trigram_train_data_features.toarray()]
+        test_data_features = np.c_[test_data_features, trigram_test_data_features.toarray()]
 else:
     # Transforming to a matrix with counted number of words
     train_data_features = vectorizer1Gram.fit_transform(train)
@@ -358,7 +378,7 @@ if features_used > 0:
 
 
 # ******* Train SVM classifier using bag of words **********************************************************************
-print "\nCreating and training classifiers:"
+print "\nCreating and training classifiers: - Time used (in sec): " + str(time.time()-start_time)
 if use_svm:
     print "\t - Train SVM classifier..."
     # Create a SVM model
@@ -421,44 +441,45 @@ NB_predictions_probabilities = clf_nb.predict_proba(test_data_features)
 
 
 #************ Write to file ********************************************************************************************
-print "Writing gold and guesses to file..."
-data_file = test_data
+if use_writeToFile:
+    print "Writing gold and guesses to file..."
+    data_file = test_data
 
-# Erwin annotated test data:
-annotated = ptd.getAnnotatedData()
-erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotated])
+    # Erwin annotated test data:
+    annotated = ptd.getAnnotatedData()
+    erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotated])
 
-svm_guess_file = write.initFile("guess_svm")
-dummy_guess_file = write.initFile("guess_dummy")
-nb_guess_file = write.initFile("guess_nb")
-gold_file = write.initFile("gold")
+    svm_guess_file = write.initFile("guess_svm")
+    dummy_guess_file = write.initFile("guess_dummy")
+    nb_guess_file = write.initFile("guess_nb")
+    gold_file = write.initFile("gold")
 
-for index in range(len(svm_predictions)):
-    #if max(svm_predictions_probabilities[index]) > minConfidence:
-    #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
-    #else:
-    #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
+    for index in range(len(svm_predictions)):
+        #if max(svm_predictions_probabilities[index]) > minConfidence:
+        #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
+        #else:
+        #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
 
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], nb_predictions[index], nb_guess_file)
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
-    #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
-    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], erwinsAnnotated[index], gold_file)
+        write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
+        write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], nb_predictions[index], nb_guess_file)
+        write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
+        #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
+        write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], erwinsAnnotated[index], gold_file)
 
-svm_guess_file.close()
-dummy_guess_file.close()
-gold_file.close()
-nb_guess_file.close()
+    svm_guess_file.close()
+    dummy_guess_file.close()
+    gold_file.close()
+    nb_guess_file.close()
 
 
-#*********** Evaluate the result with the given SemEval16 script *******************************************************
-print "\nResults:\n"
-print "Dummy prediction score: "
-os.system("perl eval.pl gold.txt guess_dummy.txt")
-print "SVM prediction score: "
-os.system("perl eval.pl gold.txt guess_svm.txt")
-print "Naive Bayes prediction score: "
-os.system("perl eval.pl gold.txt guess_nb.txt")
+    #*********** Evaluate the result with the given SemEval16 script *******************************************************
+    print "\nResults:\n"
+    print "Dummy prediction score: "
+    os.system("perl eval.pl gold.txt guess_dummy.txt")
+    print "SVM prediction score: "
+    os.system("perl eval.pl gold.txt guess_svm.txt")
+    print "Naive Bayes prediction score: "
+    os.system("perl eval.pl gold.txt guess_nb.txt")
 
 #*********** Printing total time running *******************************
-print("--- %s seconds ---" % (time.time() - start_time))
+print("\n--- %s seconds ---" % (time.time() - start_time))

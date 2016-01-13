@@ -1,10 +1,16 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn import svm, cross_validation
 from sklearn import dummy
+from sklearn.naive_bayes import MultinomialNB
+from nltk.tokenize import word_tokenize
 import processTrainingData as ptd
 import writePredictionsToFile as write
 import os
 import numpy as np
+import time
+
+# ****** TIME *****************************************************************************************************
+start_time = time.time()
 
 # ****** CONSTANTS *****************************************************************************************************
 TOPIC   = "All"
@@ -17,12 +23,17 @@ TOPIC5  = "Legalization of Abortion"
 
 # ****** Settings ******************************************************************************************************
 # Topics
-topic       = TOPIC2                # Select a topic that will be used as data
-test_topic  = TOPIC2                # Select a topic that will be used for testing
+topic       = TOPIC                # Select a topic that will be used as data
+test_topic  = TOPIC                # Select a topic that will be used for testing
 
 # Pre-processing
 use_tf_idf                  = 0     # 1 = true, 0 = false
 use_lemming                 = 1     # 1 = true, 0 = false
+
+# Classifier
+use_svm                     = 1     # 1 = true, 0 = false
+use_nb                      = 1     # 1 = true, 0 = false   # - Cant have negative features (like use_sentimentAnalyzer)
+use_dummy                   = 1     # 1 = true, 0 = false
 
 # Training
 use_abstracts               = 0     # 1 = true, 0 = false
@@ -30,24 +41,29 @@ use_labelprop               = 1     # 1 = true, 0 = false
 use_test_train_split        = 0     # 1 = true, 0 = false
 
 # Features
-use_negation                = 1     # 1 = true, 0 = false
-use_lengthOfTweet           = 1     # 1 = true, 0 = false
-use_numberOfTokens          = 1     # 1 = true, 0 = false
-use_numberOfCapitalWords    = 1     # 1 = true, 0 = false
-use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   ?
-use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   ?
-use_sentimentAnalyzer       = 1     # 1 = true, 0 = false   ?
+use_negation                = 1     # 1 = true, 0 = false   # Returns 0/1 if there exists negated words in the tweet
+use_lengthOfTweet           = 1     # 1 = true, 0 = false   # Returns length of the tweet x/140
+use_numberOfTokens          = 1     # 1 = true, 0 = false   # Returns number of words in the tweet
+use_numberOfCapitalWords    = 1     # 1 = true, 0 = false   # Returns number of capital words in the tweet
+use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   # Returns number of non-single punct. marks in tweet(i.e !!)
+use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
+use_sentimentAnalyzer       = 0     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
+use_posAndNegWord           = 0     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
+# WARNING - BENEATH TAKES 4EVER (20 min)
+use_numberOfPronouns        = 0     # 1 = true, 0 = false   # Returns number of pronouns in the tweet
 
-features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numberOfCapitalWords + use_numberOfPunctMarks + use_numberOfLengtheningWord + use_sentimentAnalyzer
+
+features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numberOfCapitalWords + use_numberOfPunctMarks \
+                + use_numberOfLengtheningWord + use_sentimentAnalyzer + use_posAndNegWord + use_numberOfPronouns
 
 use_bigram                  = 0     # 1 = true, 0 = false
 use_trigram                 = 1     # 1 = true, 0 = false
 
 
 # ****** Creating training and test set and preprocess the text ********************************************************
-print "Creating training set with topic: " + str(topic)
+print "\nCreating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
-
+print "\nPreprocessing..."
 if use_labelprop:
     label_prop_data = ptd.getLabelPropTopicData(topic)
     original_data = ptd.getTopicData(topic)
@@ -77,7 +93,6 @@ else:
 
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
-
 # Getting all the hashtags from each tweet
 train_hashtags = ptd.getAllHashtags(ptd.getAllTweets(train_data))
 
@@ -107,8 +122,8 @@ if (use_lemming):
 else:
     train = train_tweets
 
-print "Length of train set and labels should be the same: " + str(len(train)) + " == " + str(len(train_labels))
 
+print "\t - Length of train set and labels should be the same: " + str(len(train)) + " == " + str(len(train_labels))
 
 # ****** Creating test set (not used if cross_validation.train_test_split is used below) *******************************
 test_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(test_data))
@@ -125,8 +140,8 @@ else:
     test = test_tweets
 
 test_labels = ptd.getAllStances(test_data)
-print "Length of test set and labels should be the same: " + str(len(test)) + " == " + str(len(test_labels))
-
+print "\t - Length of test set and labels should be the same: " + str(len(test)) + " == " + str(len(test_labels))
+print "\n"
 
 # ****** Create a bag of words from the training set *******************************************************************
 print "Creating the bag of words..."
@@ -170,8 +185,8 @@ else:
     train_data_features = vectorizer1Gram.fit_transform(train)
     test_data_features = vectorizer1Gram.transform(test)
 
-    freqs = [(word, train_data_features.getcol(idx).sum()) for word, idx in vectorizer1Gram.vocabulary_.items()]
-    print sorted (freqs, key = lambda x: -x[1])[:10]
+    #freqs = [(word, train_data_features.getcol(idx).sum()) for word, idx in vectorizer1Gram.vocabulary_.items()]
+    #print sorted (freqs, key = lambda x: -x[1])[:10]
 
     # Numpy arrays are easy to work with, so convert the result to an array
     train_data_features = train_data_features.toarray()
@@ -194,25 +209,30 @@ else:
 
 # ******* Adding additional features ***********************************************************************************
 if features_used > 0:
-    print "Addding additional features..."
+    print "Addding features. A total of: " + str(features_used)
     if use_negation:
-        print "Presens of negation in tweet..."
+        print "\t- Presens of negation in tweet..."
     if use_lengthOfTweet:
-        print "Length of tweet..."
+        print "\t- Length of tweet..."
     if use_numberOfTokens:
-        print "Number of tokens in tweet..."
+        print "\t- Number of tokens in tweet..."
     if use_numberOfCapitalWords:
-        print "Number of capital words in tweet..."
+        print "\t- Number of capital words in tweet..."
     if use_numberOfPunctMarks:
-        print "Number of punctuation marks in tweet..."
+        print "\t- Number of punctuation marks in tweet..."
     if use_numberOfLengtheningWord:
-        print "Number of lengthened words in tweet..."
+        print "\t- Number of lengthened words in tweet..."
     if use_sentimentAnalyzer:
-        print "Using sentiment analyzer..."
+        print "\t- Using sentiment analyzer..."
+    if use_posAndNegWord:
+        print "\t- Number of pos and neg words"
+    if use_numberOfPronouns:
+        print "\t- Number of pronouns in tweet"
 
     trainTable = []
     testTable = []
     for i in range(len(train)):
+
         if use_negation:
             trainTable.append([ptd.determineNegationFeature(train[i])])
 
@@ -250,14 +270,29 @@ if features_used > 0:
         if use_sentimentAnalyzer:
             sentiments = ptd.determineSentiment(train[i])
             if len(trainTable) > i:
-                #trainTable[i].append(sentiments['compound'])
-                trainTable[i].append(sentiments['neg'])
-                trainTable[i].append(sentiments['neu'])
-                trainTable[i].append(sentiments['pos'])
+                trainTable[i].append(sentiments['compound'])
+                #trainTable[i].append(sentiments['neg'])
+                #trainTable[i].append(sentiments['neu'])
+                #trainTable[i].append(sentiments['pos'])
             else:
-                #trainTable[i].append(sentiments['compound'])
-                trainTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
+                trainTable.append([sentiments['compound']])
+                #trainTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
 
+        if use_numberOfPronouns:
+            if len(trainTable) > i:
+                trainTable[i].append(ptd.getNumberOfPronouns(ptd.getPOStags(word_tokenize(train[i]))))
+            else:
+                trainTable.append([ptd.getNumberOfPronouns(ptd.getPOStags(word_tokenize(train[i])))])
+
+        if use_posAndNegWord:
+            if len(trainTable) > i:
+                trainTable[i].append(ptd.getPosAndNegWords(train[i])[0])    # [0] = Pos
+                trainTable[i].append(ptd.getPosAndNegWords(train[i])[1])    # [1] = neg
+            else:
+                trainTable.append([ptd.getPosAndNegWords(train[i])])
+
+
+    ##### Testing feature #####
     for i in range(len(test)):
         if use_negation:
             testTable.append([ptd.determineNegationFeature(test[i])])
@@ -296,59 +331,92 @@ if features_used > 0:
         if use_sentimentAnalyzer:
             sentiments = ptd.determineSentiment(train[i])
             if len(testTable) > i:
-                #testTable[i].append(sentiments['compound'])
-                testTable[i].append(sentiments['neg'])
-                testTable[i].append(sentiments['neu'])
-                testTable[i].append(sentiments['pos'])
+                testTable[i].append(sentiments['compound'])
+                #testTable[i].append(sentiments['neg'])
+                #testTable[i].append(sentiments['neu'])
+                #testTable[i].append(sentiments['pos'])
             else:
-                #testTable.append(sentiments['compound'])
-                testTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
+                testTable.append([sentiments['compound']])
+                #testTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
+
+        if use_numberOfPronouns:
+            if len(testTable) > i:
+                testTable[i].append(ptd.getNumberOfPronouns(ptd.getPOStags(word_tokenize(train[i]))))
+            else:
+                testTable.append([ptd.getNumberOfPronouns(ptd.getPOStags(word_tokenize(train[i])))])
+
+        if use_posAndNegWord:
+            if len(testTable) > i:
+                testTable[i].append(ptd.getPosAndNegWords(train[i])[0])    # [0] = Pos
+                testTable[i].append(ptd.getPosAndNegWords(train[i])[1])    # [1] = neg
+            else:
+                testTable.append([ptd.getPosAndNegWords(train[i])])
+
 
     train_data_features = np.c_[train_data_features, trainTable]
     test_data_features = np.c_[test_data_features, testTable]
 
 
 # ******* Train SVM classifier using bag of words **********************************************************************
-print "Train SVM classifier..."
-# Create a SVM model
-clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-              gamma=0.0, kernel='linear', max_iter=-1, probability=True,
-              random_state=None, shrinking=True, tol=0.001, verbose=False)
+print "\nCreating and training classifiers:"
+if use_svm:
+    print "\t - Train SVM classifier..."
+    # Create a SVM model
+    clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+                  gamma=0.0, kernel='linear', max_iter=-1, probability=True,
+                  random_state=None, shrinking=True, tol=0.001, verbose=False)
 
-# Fit model
-clf.fit(train_data_features, train_labels)
+    # Fit model
+    clf.fit(train_data_features, train_labels)
 
-
-# ******* Cross validation *********************************************************************************************
-print "Retrieving cross validation score..."
-#all_features = np.vstack([train_data_features, test_data_features])
-#all_labels = train_labels + test_labels
-
-kf = cross_validation.StratifiedKFold(train_labels, n_folds=7, shuffle=False)
-print "Cross validation scores: "
-score = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=kf, scoring='f1_macro')
-print score
-print "Cross validation mean: "
-print score.mean()
+# ******* Train Multinomial Naive Bayes classifier using bag of words **********************************************************************
+if use_nb:
+    print "\t - Train Multinomial Naive Bayes.."
+    clf_nb = MultinomialNB(alpha=1.0, fit_prior=True, class_prior=None)
+    clf_nb.fit(train_data_features, train_labels)
 
 
 # ******* Train dummy classifier ***************************************************************************************
-print "Train dummy classifier..."
-clf_dummy = dummy.DummyClassifier(strategy='most_frequent', random_state=None, constant=None)
-clf_dummy.fit(train_data_features, train_labels)
+if use_dummy:
+    print "\t - Train dummy classifier..."
+    clf_dummy = dummy.DummyClassifier(strategy='most_frequent', random_state=None, constant=None)
+    clf_dummy.fit(train_data_features, train_labels)
 
+
+# ******* Cross validation *********************************************************************************************
+print "\nRetrieving cross validation scores..."
+#all_features = np.vstack([train_data_features, test_data_features])
+#all_labels = train_labels + test_labels
+
+kf = cross_validation.StratifiedKFold(train_labels, n_folds=5, shuffle=True)
+if use_svm:
+    print "Cross validation scores for SVM: "
+    score = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=kf, scoring='f1_macro')
+    print score
+    print "Cross validation mean for SVM: "
+    print score.mean()
+
+if use_nb:
+    print "Cross validation scores for Naive Bayes: "
+    score_nb = cross_validation.cross_val_score(clf_nb, train_data_features, train_labels, cv=kf, scoring='f1_macro')
+    print score_nb
+    print "Cross validation mean for Naive Bayes: "
+    print score_nb.mean()
 
 # ******* Predicting test labels ***************************************************************************************
-print "Predicting test labels..."
-svm_predictions = clf.predict(test_data_features)
-dummy_predictions = clf_dummy.predict(test_data_features)
-
+print "Predicting test labels for classifiers..."
+if use_svm:
+    svm_predictions = clf.predict(test_data_features)
+if use_dummy:
+    dummy_predictions = clf_dummy.predict(test_data_features)
+if use_nb:
+    nb_predictions = clf_nb.predict(test_data_features)
 
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.
 minConfidence = 0.75
 svm_predictions_probabilities = clf.predict_proba(test_data_features)
-
+NB_predictions_probabilities = clf_nb.predict_proba(test_data_features)
 #print svm_predictions_probabilities #against, favor, none
 
 
@@ -362,6 +430,7 @@ erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotate
 
 svm_guess_file = write.initFile("guess_svm")
 dummy_guess_file = write.initFile("guess_dummy")
+nb_guess_file = write.initFile("guess_nb")
 gold_file = write.initFile("gold")
 
 for index in range(len(svm_predictions)):
@@ -371,6 +440,7 @@ for index in range(len(svm_predictions)):
     #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
 
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
+    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], nb_predictions[index], nb_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
     #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], erwinsAnnotated[index], gold_file)
@@ -378,6 +448,7 @@ for index in range(len(svm_predictions)):
 svm_guess_file.close()
 dummy_guess_file.close()
 gold_file.close()
+nb_guess_file.close()
 
 
 #*********** Evaluate the result with the given SemEval16 script *******************************************************
@@ -386,3 +457,8 @@ print "Dummy prediction score: "
 os.system("perl eval.pl gold.txt guess_dummy.txt")
 print "SVM prediction score: "
 os.system("perl eval.pl gold.txt guess_svm.txt")
+print "Naive Bayes prediction score: "
+os.system("perl eval.pl gold.txt guess_nb.txt")
+
+#*********** Printing total time running *******************************
+print("--- %s seconds ---" % (time.time() - start_time))

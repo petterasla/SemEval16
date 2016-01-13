@@ -17,45 +17,63 @@ TOPIC5  = "Legalization of Abortion"
 
 # ****** Settings ******************************************************************************************************
 # Topics
-topic = TOPIC                   # Select a topic that will be used as data
-test_topic = TOPIC              # Select a topic that will be used for testing
+topic       = TOPIC2                # Select a topic that will be used as data
+test_topic  = TOPIC2                # Select a topic that will be used for testing
 
 # Pre-processing
-use_tf_idf = 0                  # 1 = true, 0 = false
-use_lemming = 1                 # 1 = true, 0 = false
+use_tf_idf                  = 0     # 1 = true, 0 = false
+use_lemming                 = 1     # 1 = true, 0 = false
 
 # Training
-use_abstracts = 0               # 1 = true, 0 = false
+use_abstracts               = 0     # 1 = true, 0 = false
+use_labelprop               = 1     # 1 = true, 0 = false
+use_test_train_split        = 0     # 1 = true, 0 = false
 
 # Features
-use_negation = 1                # 1 = true, 0 = false
-use_lengthOfTweet = 1           # 1 = true, 0 = false
-use_numberOfTokens = 1          # 1 = true, 0 = false
-use_numberOfCapitalWords = 1    # 1 = true, 0 = false
-use_numberOfPunctMarks = 1      # 1 = true, 0 = false
-use_numberOfLengtheningWord = 1 # 1 = true, 0 = false
-use_sentimentAnalyzer = 1       # 1 = true, 0 = false
+use_negation                = 1     # 1 = true, 0 = false
+use_lengthOfTweet           = 1     # 1 = true, 0 = false
+use_numberOfTokens          = 1     # 1 = true, 0 = false
+use_numberOfCapitalWords    = 1     # 1 = true, 0 = false
+use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   ?
+use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   ?
+use_sentimentAnalyzer       = 1     # 1 = true, 0 = false   ?
 
 features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numberOfCapitalWords + use_numberOfPunctMarks + use_numberOfLengtheningWord + use_sentimentAnalyzer
 
-use_bigram = 0                  # 1 = true, 0 = false
-use_trigram = 1                 # 1 = true, 0 = false
+use_bigram                  = 0     # 1 = true, 0 = false
+use_trigram                 = 1     # 1 = true, 0 = false
 
 
 # ****** Creating training and test set and preprocess the text ********************************************************
 print "Creating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
 
-# Custom splitting of data into train and test data.
-#train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.4, 0.3)
+if use_labelprop:
+    label_prop_data = ptd.getLabelPropTopicData(topic)
+    original_data = ptd.getTopicData(topic)
 
-# Standard random splitting of data into train and test data.
-data = ptd.getTopicData(topic)
-train_data, test_data, y_train, y_test = cross_validation.train_test_split(data, ptd.getAllStances(data), test_size=0.33, random_state=33)
+    train_data = label_prop_data + original_data
+    # Test data is not used when not test train split is beeing used
+    # but to not change too much code it is just beeing set to two samples
+    # should be set to use the semeval test data when system is ready for it
+    test_data = ptd.getTopicTestData(topic)
+    #test_data = original_data[:2]
+else:
+    if use_test_train_split:
+        # Custom splitting of data into train and test data.
+        #train_data, test_data = ptd.train_test_split_on_stance(ptd.getTopicData(topic), ptd.getTopicData(test_topic), 0.3, 0.4, 0.3)
 
-# Run with training and test data as provided by SemEval.
-#train_data = ptd.getTopicData(topic)
-#test_data = ptd.getTopicTestData(topic)
+        # Standard random splitting of data into train and test data.
+        data = ptd.getTopicData(topic)
+        train_data, test_data, y_train, y_test = cross_validation.train_test_split(data, ptd.getAllStances(data), test_size=0.01, random_state=33)
+    else:
+        # Run with training and test data as provided by SemEval.
+        train_data = ptd.getTopicData(topic)
+        # Test data is not used when not test train split is beeing used
+        # but to not change too much code it is just beeing set to two samples
+        # should be set to use the semeval test data when system is ready for it
+        test_data = ptd.getTopicTestData(topic)
+        #test_data = train_data[:2]
 
 # Getting all the tweets and removing hashtags and @ tags.
 train_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(train_data))
@@ -70,9 +88,8 @@ for index in range(len(train_hashtags)):
         train_tweets[index] = train_tweets[index] + " " + word + " "
 
 train_labels = ptd.getAllStances(train_data)
-#print "train labels:"
 
-# Adding additional data fomr TCP: Against data
+# Adding additional data from TCP: Against data
 if (use_abstracts):
     favor_abs, against_abs = ptd.processAbstracts()
     for abs in against_abs:
@@ -106,6 +123,7 @@ if (use_lemming):
     test = ptd.lemmatizing(test_tweets)
 else:
     test = test_tweets
+
 test_labels = ptd.getAllStances(test_data)
 print "Length of test set and labels should be the same: " + str(len(test)) + " == " + str(len(test_labels))
 
@@ -131,7 +149,7 @@ vectorizer3Gram = CountVectorizer(analyzer = "word",         # Split the corpus 
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
 # should be a list of strings.
-if (use_tf_idf):
+if use_tf_idf:
     print "Applying TF*IDF..."
     # Transforming to a matrix with counted number of words
     count = vectorizer1Gram.fit_transform(train)
@@ -191,6 +209,7 @@ if features_used > 0:
         print "Number of lengthened words in tweet..."
     if use_sentimentAnalyzer:
         print "Using sentiment analyzer..."
+
     trainTable = []
     testTable = []
     for i in range(len(train)):
@@ -288,8 +307,6 @@ if features_used > 0:
     train_data_features = np.c_[train_data_features, trainTable]
     test_data_features = np.c_[test_data_features, testTable]
 
-#print train_data_features
-
 
 # ******* Train SVM classifier using bag of words **********************************************************************
 print "Train SVM classifier..."
@@ -304,8 +321,8 @@ clf.fit(train_data_features, train_labels)
 
 # ******* Cross validation *********************************************************************************************
 print "Retrieving cross validation score..."
-all_features = np.vstack([train_data_features, test_data_features])
-all_labels = train_labels + test_labels
+#all_features = np.vstack([train_data_features, test_data_features])
+#all_labels = train_labels + test_labels
 
 kf = cross_validation.StratifiedKFold(train_labels, n_folds=7, shuffle=False)
 print "Cross validation scores: "
@@ -325,9 +342,6 @@ clf_dummy.fit(train_data_features, train_labels)
 print "Predicting test labels..."
 svm_predictions = clf.predict(test_data_features)
 dummy_predictions = clf_dummy.predict(test_data_features)
-# This is not accurate as the cross validation has already presented the test data to the model in training
-#cv_predictions = cross_validation.cross_val_predict(clfcv, test_data_features, test_labels, cv=7)
-#cv_predictions = clfcv.predict(test_data_features)
 
 
 # ******* Probabilities ************************************************************************************************
@@ -336,10 +350,6 @@ minConfidence = 0.75
 svm_predictions_probabilities = clf.predict_proba(test_data_features)
 
 #print svm_predictions_probabilities #against, favor, none
-
-
-#print 'Score from CV: ' + str(scores)
-#print 'Score from test set: ' + str(clf.score(test_data_features, test_labels))
 
 
 #************ Write to file ********************************************************************************************
@@ -352,30 +362,27 @@ erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotate
 
 svm_guess_file = write.initFile("guess_svm")
 dummy_guess_file = write.initFile("guess_dummy")
-#cross_validation_guess_file = write.initFile("guess_cv")
 gold_file = write.initFile("gold")
 
 for index in range(len(svm_predictions)):
     #if max(svm_predictions_probabilities[index]) > minConfidence:
     #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
     #else:
-    #    write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
+    #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
 
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
     #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
-    #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], cv_predictions[index], cross_validation_guess_file)
     write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], erwinsAnnotated[index], gold_file)
 
 svm_guess_file.close()
 dummy_guess_file.close()
 gold_file.close()
-#cross_validation_guess_file.close()
 
 
 #*********** Evaluate the result with the given SemEval16 script *******************************************************
-#print "\nResults:\n"
-#print "Dummy prediction score: "
-#os.system("perl eval.pl gold.txt guess_dummy.txt")
-#print "SVM prediction score: "
-#os.system("perl eval.pl gold.txt guess_svm.txt")
+print "\nResults:\n"
+print "Dummy prediction score: "
+os.system("perl eval.pl gold.txt guess_dummy.txt")
+print "SVM prediction score: "
+os.system("perl eval.pl gold.txt guess_svm.txt")

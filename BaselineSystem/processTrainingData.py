@@ -389,7 +389,7 @@ def lemmatizing(data):
     lem = WordNetLemmatizer()
     new_data = []
     for tweet in data:
-        tweet = tweet.lower()
+        #tweet = tweet.lower()
         words = tweet.split(" ")
         lemmatized = []
         for word in words:
@@ -400,9 +400,9 @@ def lemmatizing(data):
         new_data.append(new_tweet)
     return new_data
 #data = getAllTweets(getTopicData(TOPIC2))
-#print data[5]
+#print data[:3]
 #k = lemmatizing(data)
-#print k[5]
+#print k[:3]
 
 
 def count_hashtags(topic):
@@ -617,6 +617,25 @@ def determineSentiment(text):
     """
     return vader.SentimentIntensityAnalyzer().polarity_scores(text)
 
+def getPOStags(tweet):
+    """
+    Using the input with help of the NLTK library to return the tweet with part-of-speech tags.
+
+    :param tweet:   Tweet as a string
+    :return:        Return the tweet with part-of-speech tags
+    """
+    # nltk.help.upenn_tagset() to see what each tag means..
+    return nltk.pos_tag(tweet.split(" "))
+
+def getNumberOfPronouns(posTaggedTweet):
+    """
+    Count number of pronouns used in a tweet
+
+    :param posTaggedTweet:  A list containing tuples of (token, pos-tag)
+    :return:                Return number of pronouns as integer
+    """
+    return len([i for (i,x) in posTaggedTweet if x == 'PRP' or x == 'PRP$'])
+
 def getSkepticalTweets():
     url = "https://www.skepticalscience.com/print.php"
     html = urllib.urlopen(url).read()
@@ -645,4 +664,4 @@ def getSkepticalTweets():
         tweets.append(text[startIndex:endIndex])
     print tweets
 
-getSkepticalTweets()
+#getSkepticalTweets()

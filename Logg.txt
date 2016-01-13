@@ -103,6 +103,13 @@ SemEval:
         - Lagt til test data.
         - Kjoerte foerste gang med test data (kun Climate topic)
         - Implementerte inn Erwin sin "annotated test data"
-    TODO:
-            - Legg til topp hashtags for favor and against
-            - Proeve aa legge til skeptical science tweets against.
+
+13 januar:
+    PETTER:
+     - Lagt til to nye features i form av antall pronomener i en tweet (tar ca 20 min aa kjoere med den...) og antall
+      positive og negative ord i en tweet. Jeg gjorde om use_sentimentAnalyzer til aa lagre kun sentimentet for hele
+      tweeten (compound).
+      - lagt til Naive Bayes.
+      - La til en metode som henter alle skeptiske tweeten fra skeptical science. Mulig den kan hjelpe.
+      - Ser også ut som top hashtags kan hjelpe (i hvert fall for favor klassen) hvis vi booster disse litt ekstra.
+      kanskje kopiere inn dem i alle favor tweetsene eller no :)

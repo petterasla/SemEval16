@@ -2,6 +2,7 @@ import re
 import csv
 import random
 import numpy as np
+import nltk
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.sentiment import vader as vader
@@ -474,7 +475,7 @@ def createClimateLexicon(topXwords = 100):
     with open("../BaselineSystem/abstracts_with_meta.txt", "r") as abstractInfo:
         abstracts = json.load(abstractInfo)
         abstractInfo.close()
-
+    return -1
 
 
 def convertStancesToNumbers(allStances):
@@ -625,7 +626,7 @@ def getPOStags(tweet):
     :return:        Return the tweet with part-of-speech tags
     """
     # nltk.help.upenn_tagset() to see what each tag means..
-    return nltk.pos_tag(word_tokenize(tweet))
+    return nltk.pos_tag(tweet)
 
 def getNumberOfPronouns(posTaggedTweet):
     """
@@ -645,10 +646,11 @@ def getPosAndNegWords(tweet):
     """
     pos = 0
     neg = 0
+    a = vader.SentimentIntensityAnalyzer()
     for word in word_tokenize(tweet):
-        if vader.SentimentIntensityAnalyzer().polarity_scores(word)['pos'] > 0.9:
+        if a.polarity_scores(word)['pos'] > 0.9:
             pos += 1
-        if vader.SentimentIntensityAnalyzer().polarity_scores(word)['neg'] > 0.9:
+        if a.polarity_scores(word)['neg'] > 0.9:
             neg += 1
 
     l = float(len(word_tokenize(tweet)))

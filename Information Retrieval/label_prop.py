@@ -1,7 +1,8 @@
 # Import
 import numpy as np
-import BaselineSystem.processTrainingData as ptd
+import processData as pd
 import process_tweets as twitter
+import writePredictionsToFile as wtf
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.semi_supervised import label_propagation
@@ -9,27 +10,27 @@ from sklearn.semi_supervised import label_propagation
 def propagateLabels(dataset, filename):
 
     # LOAD LABELED DATA
-    labeled_data = ptd.getTopicData(dataset)
+    labeled_data = pd.getTopicData(dataset)
     #labeled_data = labeled_data[0:len(labeled_data)]
     labeled_data = labeled_data[74:95]  # Use only a small portion of the data as for labelpropagation
 
-    labeled_tweets = ptd.getAllTweets(labeled_data)
-    labeled_tweets_targets = ptd.getAllStances(labeled_data)
+    labeled_tweets = pd.getAllTweets(labeled_data)
+    labeled_tweets_targets = pd.getAllStances(labeled_data)
 
     # LOAD UNLABELED DATA
     unlabeled_tweets = twitter.readTweets(filename)
     #unlabeled_tweets = []
-    unlabeledTweets = [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136,
-                       662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
-    t = twitter.readTweetsAndIDs("stream__climatechange_clean")
-    for tw in unlabeledTweets:
-        for id in t:
-            if tw == id[0]:
-                unlabeled_tweets.append(id[1])
+    #unlabeledTweets = [662022121904840704, 662020009183551488, 662016401067155456, 662020009783373824, 662016718303195136,
+    #                   662015471261245441, 662015310367752192, 662018031292256256, 662018963916722176, 662015805635325952]
+    #t = twitter.readTweetsAndIDs("stream__climatechange_clean")
+    #for tw in unlabeledTweets:
+    #    for id in t:
+    #        if tw == id[0]:
+    #            unlabeled_tweets.append(id[1])
 
     # MERGE UNLABELED AND LABELED DATA
     all_tweets = labeled_tweets + unlabeled_tweets
-    all_labels = ptd.convertStancesToNumbers(labeled_tweets_targets) + [-1 for i in range(len(unlabeled_tweets))]
+    all_labels = pd.convertStancesToNumbers(labeled_tweets_targets) + [-1 for i in range(len(unlabeled_tweets))]
 
     # CREATE FEATURES
     # Initialize the "CountVectorizer" object, which is scikit-learn's bag of words tool.
@@ -79,7 +80,16 @@ def propagateLabels(dataset, filename):
     return predictions
 
 
-# TESTING
+# Export to file
+ID = 10000
+file = wtf.initFile("label_propagated_data")
 results = propagateLabels("Climate Change is a Real Concern", "stream__climate_clean")
-for result in results:
-    print result
+numberedStances = []
+for i in range(len(results)):
+    numberedStances.append(int(results[i][0]))
+stances = pd.convertStancesToText(numberedStances)
+for i in range(len(results)):
+    wtf.writePrdictionToFile(str(ID), "Climate Change is a Real Concern", results[i][1], stances[i], file)
+    ID += 1
+
+file.close()

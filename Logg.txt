@@ -85,12 +85,24 @@ SemEval:
     -Implementere flere features.
     -Inkludere og teste labelprop med koden vår.
 
+12. januar:
+    HENRIK:
+    -Label propagation:
+    Label propagation er nå implementert og tatt i bruk i trening. Kan slås av og på i settings. Ved trening på
+    hele treningsettet og bruk av cross validation økes resultatet fra en mean på ish 0.54 til ish 0.60 (alle parametere
+    beholdt som før dvs alt i bruk untatt abstracts, tdidf og bigram).
+    Når label prop taes i bruk får vi også en økning i Macro F-score på 0.0033 (all treningsdata og Erwins test data).
+    Når ikke test_train_split er i bruk taes hele treningsettet i bruk og vi bruker erwins "gold" til testing. Vi bør her
+    kanskje fokusere på corss validation mean, siden den kanskje er bedre enn Erwins manuelle klassifisering.
+    Det er verdt å nevne at hvis labelingen til Erwin stemmer gjør vi det dårligere en dummy...
 
-12. januar
+    -Storing of fitted models:
+    Lagt til metoder for å lagre og laste inn modeller som er trent.
+
     PETTER:
-    - Lagt til test data.
-    - Kjoerte foerste gang med test data (kun Climate topic)
-    - Implementerte inn Erwin sin "annotated test data"
+        - Lagt til test data.
+        - Kjoerte foerste gang med test data (kun Climate topic)
+        - Implementerte inn Erwin sin "annotated test data"
     TODO:
-        - Legg til topp hashtags for favor and against
-        - Proeve aa legge til skeptical science tweets against.
+            - Legg til topp hashtags for favor and against
+            - Proeve aa legge til skeptical science tweets against.

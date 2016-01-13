@@ -86,3 +86,11 @@ SemEval:
     -Inkludere og teste labelprop med koden vår.
 
 
+12. januar
+    PETTER:
+    - Lagt til test data.
+    - Kjoerte foerste gang med test data (kun Climate topic)
+    - Implementerte inn Erwin sin "annotated test data"
+    TODO:
+        - Legg til topp hashtags for favor and against
+        - Proeve aa legge til skeptical science tweets against.

@@ -5,6 +5,8 @@ import numpy as np
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.sentiment import vader as vader
+import urllib
+from bs4 import BeautifulSoup
 # When using vader.SentimentIntensityAnalyzer() sentiment methods, you might have to download and store this in
 # /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/nltk/sentiment/vader_lexicon.txt'
 # https://github.com/nltk/nltk/blob/develop/nltk/sentiment/vader_lexicon.txt
@@ -598,3 +600,32 @@ def determineSentiment(text):
     """
     return vader.SentimentIntensityAnalyzer().polarity_scores(text)
 
+def getSkepticalTweets():
+    url = "https://www.skepticalscience.com/print.php"
+    html = urllib.urlopen(url).read()
+    soup = BeautifulSoup(html)
+
+    # kill all script and style elements
+    for script in soup(["script", "style"]):
+        script.extract()    # rip it out
+
+    # get text
+    text = soup.get_text()
+
+    # break into lines and remove leading and trailing space on each
+    lines = (line.strip() for line in text.splitlines())
+    # break multi-headlines into a line each
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    # drop blank lines
+    text = '\n'.join(chunk for chunk in chunks if chunk)
+    text = text.replace("\n", " ")
+
+    tweets = []
+    for i in range (1,156):
+        s = str(i) + ' "'
+        startIndex = text.find(s) + 3
+        endIndex = text.find('"', startIndex+1)
+        tweets.append(text[startIndex:endIndex])
+    print tweets
+
+getSkepticalTweets()

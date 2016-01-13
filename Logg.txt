@@ -86,3 +86,11 @@ SemEval:
     -Inkludere og teste labelprop med koden vår.
 
 
+12. januar:
+    HENRIK:
+    -Label propagation:
+    Label propagation er nå implementert og tatt i bruk i trening. Kan slås av og på i settings. Ved trening på
+    hele treningsettet og bruk av cross validation økes resultatet fra en mean på ish 0.54 til ish 0.60 (alle parametere
+    beholdt som før dvs alt i bruk untatt abstracts, tdidf og bigram)
+    -Storing of fitted models:
+    Lagt til metoder for å lagre og laste inn modeller som er trent.

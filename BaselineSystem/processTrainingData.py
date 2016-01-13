@@ -369,7 +369,7 @@ def stemming(data):
     pt = PorterStemmer()
     new_data = []
     for tweet in data:
-        words = tweet.split(" ")
+        words = word_tokenize(tweet)
         stemmed_words = []
         for word in words:
             stemmed_words.append(pt.stem(word))
@@ -390,7 +390,7 @@ def lemmatizing(data):
     new_data = []
     for tweet in data:
         #tweet = tweet.lower()
-        words = tweet.split(" ")
+        words = word_tokenize(tweet)
         lemmatized = []
         for word in words:
             lemmatized.append(lem.lemmatize(word))
@@ -557,8 +557,8 @@ def numberOfCapitalWords(text):
     :return:            Integer number of capital words
     """
     capitalized = []
-    if vader.allcap_differential(text.split(" ")):
-        for word in text.split(" "):
+    if vader.allcap_differential(word_tokenize(text)):
+        for word in word_tokenize(text):
             if word.isupper():
                 capitalized.append(word)
         return len(capitalized)
@@ -576,7 +576,7 @@ def numberOfNonSinglePunctMarks(text):
     """
     counter = 0
     isQuestionMarkOrExclamationMarkLast = 0
-    for word in text.split(" "):
+    for word in word_tokenize(text):
         for i in range(len(word)):
             # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
             if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
@@ -598,7 +598,7 @@ def numberOfLengtheningWords(text):
     :return:            Integer number of lengthening words.
     """
     counter = 0
-    for word in text.split(" "):
+    for word in word_tokenize(text):
         for i in range(len(word)):
             letter = word[i]
             if (len(word) > 2) and (i < len(word)-2) and (word[i+1] == letter) and (word[i+2] == letter):
@@ -625,7 +625,7 @@ def getPOStags(tweet):
     :return:        Return the tweet with part-of-speech tags
     """
     # nltk.help.upenn_tagset() to see what each tag means..
-    return nltk.pos_tag(tweet.split(" "))
+    return nltk.pos_tag(word_tokenize(tweet))
 
 def getNumberOfPronouns(posTaggedTweet):
     """
@@ -635,6 +635,25 @@ def getNumberOfPronouns(posTaggedTweet):
     :return:                Return number of pronouns as integer
     """
     return len([i for (i,x) in posTaggedTweet if x == 'PRP' or x == 'PRP$'])
+
+def getPosAndNegWords(tweet):
+    """
+    Finds positive and negative boosted words in the tweet
+
+    :param tweet:   Tweet as a string
+    :return:        Returns a list with two floats between 0 and 1. First element represent pos and second repr neg
+    """
+    pos = 0
+    neg = 0
+    for word in word_tokenize(tweet):
+        if vader.SentimentIntensityAnalyzer().polarity_scores(word)['pos'] > 0.9:
+            pos += 1
+        if vader.SentimentIntensityAnalyzer().polarity_scores(word)['neg'] > 0.9:
+            neg += 1
+
+    l = float(len(word_tokenize(tweet)))
+    return [pos/l, neg/l]
+
 
 def getSkepticalTweets():
     url = "https://www.skepticalscience.com/print.php"

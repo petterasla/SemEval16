@@ -91,6 +91,10 @@ SemEval:
     -Label propagation:
     Label propagation er nå implementert og tatt i bruk i trening. Kan slås av og på i settings. Ved trening på
     hele treningsettet og bruk av cross validation økes resultatet fra en mean på ish 0.54 til ish 0.60 (alle parametere
-    beholdt som før dvs alt i bruk untatt abstracts, tdidf og bigram)
+    beholdt som før dvs alt i bruk untatt abstracts, tdidf og bigram).
+    Når label prop taes i bruk får vi også en økning i Macro F-score på 0.0033 (all treningsdata og Erwins test data).
+    Når ikke test_train_split er i bruk taes hele treningsettet i bruk og vi bruker erwins "gold" til testing. Vi bør her
+    kanskje fokusere på corss validation mean, siden den kanskje er bedre enn Erwins manuelle klassifisering.
+
     -Storing of fitted models:
     Lagt til metoder for å lagre og laste inn modeller som er trent.

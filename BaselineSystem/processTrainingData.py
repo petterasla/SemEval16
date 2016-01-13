@@ -681,8 +681,8 @@ def getSkepticalTweets():
     for i in range (1,156):
         s = str(i) + ' "'
         startIndex = text.find(s) + 3
-        endIndex = text.find('"', startIndex+1)
+        endIndex = text.find('"', startIndex+5)
         tweets.append(text[startIndex:endIndex])
-    print tweets
+    return tweets
 
-#getSkepticalTweets()
+getSkepticalTweets()

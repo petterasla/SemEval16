@@ -2,6 +2,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn import svm, cross_validation
 from sklearn import dummy
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report
+from sklearn.metrics import fbeta_score
 from nltk.tokenize import word_tokenize
 import processTrainingData as ptd
 import writePredictionsToFile as write
@@ -9,8 +11,10 @@ import os
 import numpy as np
 import time
 
+
 # ****** TIME *****************************************************************************************************
 start_time = time.time()
+
 
 # ****** CONSTANTS *****************************************************************************************************
 TOPIC   = "All"
@@ -27,7 +31,7 @@ topic       = TOPIC2                # Select a topic that will be used as data
 test_topic  = TOPIC2                # Select a topic that will be used for testing
 
 # Pre-processing
-use_tf_idf                  = 1     # 1 = true, 0 = false
+use_tf_idf                  = 0     # 1 = true, 0 = false
 use_lemming                 = 1     # 1 = true, 0 = false
 
 # Classifier
@@ -39,7 +43,7 @@ use_dummy                   = 1     # 1 = true, 0 = false
 use_abstracts               = 0     # 1 = true, 0 = false
 use_labelprop               = 1     # 1 = true, 0 = false
 use_test_train_split        = 0     # 1 = true, 0 = false
-use_bigram                  = 1     # 1 = true, 0 = false
+use_bigram                  = 0     # 1 = true, 0 = false
 use_trigram                 = 1     # 1 = true, 0 = false
 
 # Features
@@ -49,7 +53,7 @@ use_numberOfTokens          = 1     # 1 = true, 0 = false   # Returns number of 
 use_numberOfCapitalWords    = 1     # 1 = true, 0 = false   # Returns number of capital words in the tweet
 use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   # Returns number of non-single punct. marks in tweet(i.e !!)
 use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
-use_sentimentAnalyzer       = 0     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
+use_sentimentAnalyzer       = 1     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
 use_posAndNegWord           = 0     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
 # WARNING - BENEATH TAKES 4EVER (20 min med kun topic=climate)
 use_numberOfPronouns        = 0     # 1 = true, 0 = false   # Returns number of pronouns in the tweet
@@ -60,10 +64,15 @@ features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numb
 # Write prediction to file
 use_writeToFile             = 0     # 1 = true, 0 = false
 
+# Print classification report based on cross validation training
+print_classification_report = 1     # 1 = true, 0 = false
+
+
 # ****** Creating training and test set and preprocess the text ********************************************************
 print "\nCreating training set with topic: " + str(topic)
 print "Creating test set with topic: " + str(test_topic)
 print "\nPreprocessing..."
+
 if use_labelprop:
     label_prop_data = ptd.getLabelPropTopicData(topic)
     original_data = ptd.getTopicData(topic)
@@ -122,8 +131,8 @@ if (use_lemming):
 else:
     train = train_tweets
 
-
 print "\t - Length of train set and labels should be the same: " + str(len(train)) + " == " + str(len(train_labels))
+
 
 # ****** Creating test set (not used if cross_validation.train_test_split is used below) *******************************
 test_tweets = ptd.getAllTweetsWithoutHashOrAlphaTag(ptd.getAllTweets(test_data))
@@ -141,10 +150,10 @@ else:
 
 test_labels = ptd.getAllStances(test_data)
 print "\t - Length of test set and labels should be the same: " + str(len(test)) + " == " + str(len(test_labels))
-print "\n"
+
 
 # ****** Create a bag of words from the training set *******************************************************************
-print "Creating the bag of words..."
+print "\nCreating the bag of words..."
 
 # Initialize the "CountVectorizer" object, which is scikit-learn's bag of words tool.
 vectorizer1Gram = CountVectorizer(analyzer = "word",         # Split the corpus into words
@@ -290,10 +299,10 @@ if features_used > 0:
         if use_sentimentAnalyzer:
             sentiments = ptd.determineSentiment(train[i])
             if len(trainTable) > i:
-                trainTable[i].append(sentiments['compound'])
-                #trainTable[i].append(sentiments['neg'])
-                #trainTable[i].append(sentiments['neu'])
-                #trainTable[i].append(sentiments['pos'])
+                #trainTable[i].append(sentiments['compound'])
+                trainTable[i].append(sentiments['neg'])
+                trainTable[i].append(sentiments['neu'])
+                trainTable[i].append(sentiments['pos'])
             else:
                 trainTable.append([sentiments['compound']])
                 #trainTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
@@ -312,7 +321,7 @@ if features_used > 0:
                 trainTable.append([ptd.getPosAndNegWords(train[i])])
 
 
-    ##### Testing feature #####
+    ##### Test set features #####
     for i in range(len(test)):
         if use_negation:
             testTable.append([ptd.determineNegationFeature(test[i])])
@@ -351,10 +360,10 @@ if features_used > 0:
         if use_sentimentAnalyzer:
             sentiments = ptd.determineSentiment(train[i])
             if len(testTable) > i:
-                testTable[i].append(sentiments['compound'])
-                #testTable[i].append(sentiments['neg'])
-                #testTable[i].append(sentiments['neu'])
-                #testTable[i].append(sentiments['pos'])
+                #testTable[i].append(sentiments['compound'])
+                testTable[i].append(sentiments['neg'])
+                testTable[i].append(sentiments['neu'])
+                testTable[i].append(sentiments['pos'])
             else:
                 testTable.append([sentiments['compound']])
                 #testTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
@@ -378,12 +387,16 @@ if features_used > 0:
 
 
 # ******* Train SVM classifier using bag of words **********************************************************************
-print "\nCreating and training classifiers: - Time used (in sec): " + str(time.time()-start_time)
+print "\nCreating and training classifiers: - Time used so far (in sec): " + str(time.time()-start_time)
 if use_svm:
     print "\t - Train SVM classifier..."
     # Create a SVM model
+    # clf = svm.LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
+    #                     intercept_scaling=1, loss='squared_hinge', max_iter=1000,
+    #                     multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
+    #                     verbose=0)
     clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-                  gamma=0.0, kernel='linear', max_iter=-1, probability=True,
+                  gamma='auto', kernel='linear', max_iter=-1, probability=True,
                   random_state=None, shrinking=True, tol=0.001, verbose=False)
 
     # Fit model
@@ -408,7 +421,7 @@ print "\nRetrieving cross validation scores..."
 #all_features = np.vstack([train_data_features, test_data_features])
 #all_labels = train_labels + test_labels
 
-kf = cross_validation.StratifiedKFold(train_labels, n_folds=5, shuffle=True)
+kf = cross_validation.StratifiedKFold(train_labels, n_folds=5, shuffle=True, random_state=1)
 if use_svm:
     print "Cross validation scores for SVM: "
     score = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=kf, scoring='f1_macro')
@@ -426,11 +439,44 @@ if use_nb:
 # ******* Predicting test labels ***************************************************************************************
 print "Predicting test labels for classifiers..."
 if use_svm:
+    print "\n- Linear SVM"
     svm_predictions = clf.predict(test_data_features)
+
+    if print_classification_report:
+        pred_stances_svm = cross_validation.cross_val_predict(clf, train_data_features,
+                                         train_labels, cv=kf)
+        print classification_report(train_labels, pred_stances_svm, digits=4)
+
+        macro_f_svm = fbeta_score(train_labels, pred_stances_svm, 1.0,
+                              labels=['AGAINST', 'FAVOR'], average='macro')
+        print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f_svm)
+
 if use_dummy:
+    print "\n\- Dummy"
     dummy_predictions = clf_dummy.predict(test_data_features)
+
+    if print_classification_report:
+        pred_stances_dummy = cross_validation.cross_val_predict(clf_dummy, train_data_features,
+                                                          train_labels, cv=kf)
+        print classification_report(train_labels, pred_stances_dummy, digits=4)
+
+        macro_f_dummy = fbeta_score(train_labels, pred_stances_dummy, 1.0,
+                              labels=['AGAINST', 'FAVOR'], average='macro')
+        print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f_dummy)
+
 if use_nb:
+    print "\n- Naive bayes"
     nb_predictions = clf_nb.predict(test_data_features)
+
+    if print_classification_report:
+        pred_stances_nb = cross_validation.cross_val_predict(clf_nb, train_data_features,
+                                                          train_labels, cv=kf)
+        print classification_report(train_labels, pred_stances_nb, digits=4)
+
+        macro_f_nb = fbeta_score(train_labels, pred_stances_nb, 1.0,
+                              labels=['AGAINST', 'FAVOR'], average='macro')
+        print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f_nb)
+
 
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.

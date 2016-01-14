@@ -525,9 +525,9 @@ def determineNegationFeature(text):
     """
     feature = vader.negated(text, include_nt=True)
     if feature:
-        return 1
+        return float(1)
     else:
-        return 0
+        return float(0)
 
 
 def lengthOfTweetFeature(text):
@@ -547,7 +547,7 @@ def numberOfTokensFeature(text):
     :param doc_name:    Tweet as string
     :return:            Integer
     """
-    return len(word_tokenize(text))
+    return float(len(word_tokenize(text)))
 
 
 def numberOfCapitalWords(text):
@@ -562,9 +562,9 @@ def numberOfCapitalWords(text):
         for word in word_tokenize(text):
             if word.isupper():
                 capitalized.append(word)
-        return len(capitalized)
+        return float(len(capitalized))
     else:
-        return 0
+        return float(0)
 #print numberOfCapitalWords("HEI hvordan Gaar DET!")
 
 def numberOfNonSinglePunctMarks(text):
@@ -586,7 +586,7 @@ def numberOfNonSinglePunctMarks(text):
                     isQuestionMarkOrExclamationMarkLast = 1
                 break           # Break here otherwise a word like: "hello!!!!" will count as 3
 
-    return [counter, isQuestionMarkOrExclamationMarkLast]
+    return [float(counter), isQuestionMarkOrExclamationMarkLast]
 #print numberOfNonSinglePunctMarks("hei hei!!#% Dette er en test !#!")
 
 
@@ -605,7 +605,7 @@ def numberOfLengtheningWords(text):
             if (len(word) > 2) and (i < len(word)-2) and (word[i+1] == letter) and (word[i+2] == letter):
                 counter +=1
                 break
-    return counter
+    return float(counter)
 #print numberOfLengtheningWords("cooolll balll hey how arre you")
 
 
@@ -635,7 +635,7 @@ def getNumberOfPronouns(posTaggedTweet):
     :param posTaggedTweet:  A list containing tuples of (token, pos-tag)
     :return:                Return number of pronouns as integer
     """
-    return len([i for (i,x) in posTaggedTweet if x == 'PRP' or x == 'PRP$'])
+    return float(len([i for (i,x) in posTaggedTweet if x == 'PRP' or x == 'PRP$']))
 
 def getPosAndNegWords(tweet):
     """

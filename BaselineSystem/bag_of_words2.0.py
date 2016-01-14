@@ -41,7 +41,8 @@ use_dummy                   = 1     # 1 = true, 0 = false
 
 # Training
 use_abstracts               = 0     # 1 = true, 0 = false
-use_labelprop               = 1     # 1 = true, 0 = false
+use_skeptical_tweets        = 1     # 1 = true, 0 = false
+use_labelprop               = 0     # 1 = true, 0 = false
 use_test_train_split        = 0     # 1 = true, 0 = false
 use_bigram                  = 0     # 1 = true, 0 = false
 use_trigram                 = 1     # 1 = true, 0 = false
@@ -113,7 +114,8 @@ for index in range(len(train_hashtags)):
 
 train_labels = ptd.getAllStances(train_data)
 
-# Adding additional data from TCP: Against data
+#****************** Adding additional data ***************************************************
+# Data from TCP
 if (use_abstracts):
     favor_abs, against_abs = ptd.processAbstracts()
     for abs in against_abs:
@@ -124,6 +126,14 @@ if (use_abstracts):
         train_labels.append("AGAINST")
     #for abs in favor_abs:
     #   train_labels.append("FAVOR")
+
+# Data from skeptical tweets from TCP
+if use_skeptical_tweets:
+    number_of_tweets = 40      # A total of 155 tweets.
+    against_data = ptd.getSkepticalTweets()[:number_of_tweets]
+    train_tweets = train_tweets + against_data
+    against_labels = ["AGAINST" for i in range(number_of_tweets)]
+    train_labels = train_labels + against_labels
 
 # Lemmatizing the tweets
 if (use_lemming):
@@ -382,22 +392,22 @@ if features_used > 0:
                 testTable.append([ptd.getPosAndNegWords(train[i])])
 
 
+    print trainTable[:2]
     train_data_features = np.c_[train_data_features, trainTable]
     test_data_features = np.c_[test_data_features, testTable]
-
 
 # ******* Train SVM classifier using bag of words **********************************************************************
 print "\nCreating and training classifiers: - Time used so far (in sec): " + str(time.time()-start_time)
 if use_svm:
     print "\t - Train SVM classifier..."
-    # Create a SVM model
-    # clf = svm.LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
-    #                     intercept_scaling=1, loss='squared_hinge', max_iter=1000,
-    #                     multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
-    #                     verbose=0)
-    clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-                  gamma='auto', kernel='linear', max_iter=-1, probability=True,
-                  random_state=None, shrinking=True, tol=0.001, verbose=False)
+    #Create a SVM model
+    clf = svm.LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
+                         intercept_scaling=1, loss='squared_hinge', max_iter=1000,
+                         multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
+                         verbose=0)
+    #clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+    #              gamma='auto', kernel='linear', max_iter=-1, probability=True,
+    #              random_state=None, shrinking=True, tol=0.001, verbose=False)
 
     # Fit model
     clf.fit(train_data_features, train_labels)
@@ -481,8 +491,10 @@ if use_nb:
 # ******* Probabilities ************************************************************************************************
 # To use the probabilities uncomment the lines 335 to 338 and then comment line 340.
 minConfidence = 0.75
-svm_predictions_probabilities = clf.predict_proba(test_data_features)
-NB_predictions_probabilities = clf_nb.predict_proba(test_data_features)
+#if use_svm:
+#    svm_predictions_probabilities = clf.predict_proba(test_data_features)
+#if use_nb:
+#    NB_predictions_probabilities = clf_nb.predict_proba(test_data_features)
 #print svm_predictions_probabilities #against, favor, none
 
 

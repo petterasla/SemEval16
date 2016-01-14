@@ -226,7 +226,7 @@ def getAllStances(data_file="All"):
         data = data_file
     stance = []
     for i in range(len(data)):
-        stance.append(data[i][3])
+        stance.append(str(data[i][3]).rstrip())
     return stance
 
 
@@ -660,7 +660,7 @@ def getPosAndNegWords(tweet):
 def getSkepticalTweets():
     url = "https://www.skepticalscience.com/print.php"
     html = urllib.urlopen(url).read()
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "lxml")
 
     # kill all script and style elements
     for script in soup(["script", "style"]):

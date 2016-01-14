@@ -66,6 +66,7 @@ features_used = use_negation + use_lengthOfTweet + use_numberOfTokens + use_numb
 use_writeToFile             = 0     # 1 = true, 0 = false
 
 # Print classification report based on cross validation training
+use_crossval_score          = 0     # 1 = true, 0 = false
 print_classification_report = 1     # 1 = true, 0 = false
 
 
@@ -91,7 +92,7 @@ else:
 
         # Standard random splitting of data into train and test data.
         data = ptd.getTopicData(topic)
-        train_data, test_data, y_train, y_test = cross_validation.train_test_split(data, ptd.getAllStances(data), test_size=0.01, random_state=33)
+        train_data, test_data, y_train, y_test = cross_validation.train_test_split(data, ptd.getAllStances(data), test_size=0.33, random_state=33)
     else:
         # Run with training and test data as provided by SemEval.
         train_data = ptd.getTopicData(topic)
@@ -172,13 +173,13 @@ vectorizer1Gram = CountVectorizer(analyzer = "word",         # Split the corpus 
 
 # Initialize the "CountVectorizer" object, which is scikit-learn's bag of words tool.
 vectorizer2Gram = CountVectorizer(analyzer = "word",         # Split the corpus into words
-                                  ngram_range = (2,2),     # N-gram: (1,1) = unigram, (2,2) = bigram
-                                  stop_words = "english")  # Built-in list of english stop words.)
+                                    ngram_range = (2,2),     # N-gram: (1,1) = unigram, (2,2) = bigram
+                                    stop_words = "english")  # Built-in list of english stop words.)
 # Stop words list can be found at:
 #https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/feature_extraction/stop_words.py
 vectorizer3Gram = CountVectorizer(analyzer = "word",         # Split the corpus into words
-                                  ngram_range = (3,3),     # N-gram: (1,1) = unigram, (2,2) = bigram
-                                  stop_words = "english")  # Built-in list of english stop words.
+                                    ngram_range = (3,3),     # N-gram: (1,1) = unigram, (2,2) = bigram
+                                    stop_words = "english")  # Built-in list of english stop words.
 
 # fit_transform() does two functions: First, it fits the model and learns the vocabulary;
 # second, it transforms our training data into feature vectors. The input to fit_transform
@@ -314,8 +315,8 @@ if features_used > 0:
                 trainTable[i].append(sentiments['neu'])
                 trainTable[i].append(sentiments['pos'])
             else:
-                trainTable.append([sentiments['compound']])
-                #trainTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
+                #trainTable.append([sentiments['compound']])
+                trainTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
 
         if use_numberOfPronouns:
             if len(trainTable) > i:
@@ -375,8 +376,8 @@ if features_used > 0:
                 testTable[i].append(sentiments['neu'])
                 testTable[i].append(sentiments['pos'])
             else:
-                testTable.append([sentiments['compound']])
-                #testTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
+                #testTable.append([sentiments['compound']])
+                testTable.append([sentiments['neg'], sentiments['neu'], sentiments['pos']])
 
         if use_numberOfPronouns:
             if len(testTable) > i:
@@ -432,19 +433,21 @@ print "\nRetrieving cross validation scores..."
 #all_labels = train_labels + test_labels
 
 kf = cross_validation.StratifiedKFold(train_labels, n_folds=5, shuffle=True, random_state=1)
-if use_svm:
-    print "Cross validation scores for SVM: "
-    score = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=kf, scoring='f1_macro')
-    print score
-    print "Cross validation mean for SVM: "
-    print score.mean()
 
-if use_nb:
-    print "Cross validation scores for Naive Bayes: "
-    score_nb = cross_validation.cross_val_score(clf_nb, train_data_features, train_labels, cv=kf, scoring='f1_macro')
-    print score_nb
-    print "Cross validation mean for Naive Bayes: "
-    print score_nb.mean()
+if use_crossval_score:
+    if use_svm:
+        print "Cross validation scores for SVM: "
+        score = cross_validation.cross_val_score(clf, train_data_features, train_labels, cv=kf, scoring='f1_macro')
+        print score
+        print "Cross validation mean for SVM: "
+        print score.mean()
+
+    if use_nb:
+        print "Cross validation scores for Naive Bayes: "
+        score_nb = cross_validation.cross_val_score(clf_nb, train_data_features, train_labels, cv=kf, scoring='f1_macro')
+        print score_nb
+        print "Cross validation mean for Naive Bayes: "
+        print score_nb.mean()
 
 # ******* Predicting test labels ***************************************************************************************
 print "Predicting test labels for classifiers..."

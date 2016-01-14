@@ -416,10 +416,10 @@ def count_hashtags(topic):
 
     for i in range(len(hashtags)):
         if len(hashtags[i]) > 0:
-            if (stance[i] == "FAVOR\r"):
+            if (stance[i] == "FAVOR"):
                 for hash in hashtags[i]:
                     hashtag_list_favor.append(hash.lower())
-            elif (stance[i] == "AGAINST\r"):
+            elif (stance[i] == "AGAINST"):
                 for hash in hashtags[i]:
                     hashtag_list_against.append(hash.lower())
             else:
@@ -487,9 +487,9 @@ def convertStancesToNumbers(allStances):
     """
     numberedStances = []
     for i in range(len(allStances)):
-        if allStances[i] == u'FAVOR\r':
+        if allStances[i] == 'FAVOR':
             numberedStances.append(2)
-        elif allStances[i] == u'NONE\r':
+        elif allStances[i] == 'NONE':
             numberedStances.append(1)
         else:
             numberedStances.append(0)

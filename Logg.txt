@@ -118,3 +118,11 @@ SemEval:
      - Lagt in koden til Erwin.
      - Lagt in utskrift av classification report.
      - Endret tilbake sentiment analyser da det ikke støttes negative features i naive bayes.
+
+14. januar:
+    HENRIK:
+    - Laget status oversikt.
+    - Skrevet mail med spørsmål til Erwin (+ Rune).
+    - Fikset repeated punctuation feature, da den ikke funket (gammel er kommentert ut).
+    - Prøvd å legge inn classifier som benytter seg av stemming, men den gjør det ikke så bra, så det er noe som ikke
+    stemmer.

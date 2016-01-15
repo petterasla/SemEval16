@@ -4,8 +4,10 @@ from sklearn import dummy
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report
 from sklearn.metrics import fbeta_score
-from nltk.tokenize import word_tokenize
 from sklearn.ensemble import VotingClassifier
+from sklearn.pipeline import Pipeline, FeatureUnion, make_pipeline, make_union
+from sklearn.preprocessing import FunctionTransformer
+from nltk.tokenize import word_tokenize
 import processTrainingData as ptd
 import writePredictionsToFile as write
 import os
@@ -38,25 +40,25 @@ use_lemming                 = 1     # 1 = true, 0 = false
 # Classifier
 use_svm                     = 1     # 1 = true, 0 = false
 use_nb                      = 1     # 1 = true, 0 = false   # - Cant have negative features (like use_sentimentAnalyzer)
-use_dummy                   = 1     # 1 = true, 0 = false
+use_dummy                   = 0     # 1 = true, 0 = false
 
 # Training
 use_abstracts               = 0     # 1 = true, 0 = false
-use_skeptical_tweets        = 1     # 1 = true, 0 = false
+use_skeptical_tweets        = 0     # 1 = true, 0 = false
 use_labelprop               = 0     # 1 = true, 0 = false
 use_test_train_split        = 0     # 1 = true, 0 = false
 use_bigram                  = 0     # 1 = true, 0 = false
 use_trigram                 = 1     # 1 = true, 0 = false
 
 # Features
-use_negation                = 1     # 1 = true, 0 = false   # Returns 0/1 if there exists negated words in the tweet
-use_lengthOfTweet           = 1     # 1 = true, 0 = false   # Returns length of the tweet x/140
-use_numberOfTokens          = 1     # 1 = true, 0 = false   # Returns number of words in the tweet
-use_numberOfCapitalWords    = 1     # 1 = true, 0 = false   # Returns number of capital words in the tweet
+use_negation                = 0     # 1 = true, 0 = false   # Returns 0/1 if there exists negated words in the tweet
+use_lengthOfTweet           = 0     # 1 = true, 0 = false   # Returns length of the tweet x/140
+use_numberOfTokens          = 0     # 1 = true, 0 = false   # Returns number of words in the tweet
+use_numberOfCapitalWords    = 0     # 1 = true, 0 = false   # Returns number of capital words in the tweet
 use_numberOfPunctMarks      = 0     # 1 = true, 0 = false   # Returns number of non-single punct. marks in tweet(i.e !!)
-use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
-use_sentimentAnalyzer       = 1     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
-use_posAndNegWord           = 1     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
+use_numberOfLengtheningWord = 0     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
+use_sentimentAnalyzer       = 0     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
+use_posAndNegWord           = 0     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
 # WARNING - BENEATH TAKES 4EVER (20 min med kun topic=climate)
 use_numberOfPronouns        = 0     # 1 = true, 0 = false   # Returns number of pronouns in the tweet
 
@@ -398,6 +400,8 @@ if features_used > 0:
     train_data_features = np.c_[train_data_features, trainTable]
     test_data_features = np.c_[test_data_features, testTable]
 
+
+
 # ******* Train SVM classifier using bag of words **********************************************************************
 print "\nCreating and training classifiers: - Time used so far (in sec): " + str(time.time()-start_time)
 if use_svm:
@@ -412,7 +416,7 @@ if use_svm:
                   random_state=None, shrinking=True, tol=0.001, verbose=False)
 
     # Fit model
-    clf.fit(train_data_features, train_labels)
+    #clf.fit(train_data_features, train_labels)
 
 # ******* Train Multinomial Naive Bayes classifier using bag of words **********************************************************************
 if use_nb:
@@ -427,6 +431,39 @@ if use_dummy:
     clf_dummy = dummy.DummyClassifier(strategy='most_frequent', random_state=None, constant=None)
     clf_dummy.fit(train_data_features, train_labels)
 
+#************** Pipelining ***********************************
+
+pipeline_svm = make_pipeline(
+        make_union(
+            vectorizer1Gram,
+            #vectorizer2Gram,
+            #vectorizer3Gram,
+            FunctionTransformer(ptd.determineNegationFeature, validate=False),
+            FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
+            FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
+            FunctionTransformer(ptd.numberOfCapitalWords, validate=False),
+            FunctionTransformer(ptd.numberOfNonSinglePunctMarks, validate=False),
+            FunctionTransformer(ptd.isExclamationMark, validate=False),
+            FunctionTransformer(ptd.numberOfLengtheningWords, validate=False),
+            FunctionTransformer(ptd.determineSentiment, validate=False)
+            ),
+        clf)
+
+pipeline_nb = make_pipeline(
+        make_union(
+            vectorizer1Gram,
+            #vectorizer2Gram,
+            #vectorizer3Gram,
+            FunctionTransformer(ptd.determineNegationFeature, validate=False),
+            FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
+            FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
+            FunctionTransformer(ptd.numberOfCapitalWords, validate=False),
+            FunctionTransformer(ptd.numberOfNonSinglePunctMarks, validate=False),
+            FunctionTransformer(ptd.isExclamationMark, validate=False),
+            FunctionTransformer(ptd.numberOfLengtheningWords, validate=False),
+            FunctionTransformer(ptd.determineSentiment, validate=False)
+        ),
+        clf_nb)
 
 # ******* Cross validation *********************************************************************************************
 print "\nRetrieving cross validation scores..."
@@ -454,10 +491,10 @@ if use_crossval_score:
 print "Predicting test labels for classifiers..."
 if use_svm:
     print "\n- Linear SVM"
-    svm_predictions = clf.predict(test_data_features)
+    #svm_predictions = clf.predict(test_data_features)
 
     if print_classification_report:
-        pred_stances_svm = cross_validation.cross_val_predict(clf, train_data_features, train_labels, cv=kf)
+        pred_stances_svm = cross_validation.cross_val_predict(pipeline_svm, train, train_labels, cv=kf)
         print classification_report(train_labels, pred_stances_svm, digits=4)
 
         macro_f_svm = fbeta_score(train_labels, pred_stances_svm, 1.0,
@@ -478,10 +515,10 @@ if use_dummy:
 
 if use_nb:
     print "\n- Naive bayes"
-    nb_predictions = clf_nb.predict(test_data_features)
+    #nb_predictions = clf_nb.predict(test_data_features)
 
     if print_classification_report:
-        pred_stances_nb = cross_validation.cross_val_predict(clf_nb, train_data_features, train_labels, cv=kf)
+        pred_stances_nb = cross_validation.cross_val_predict(pipeline_nb, train, train_labels, cv=kf)
         print classification_report(train_labels, pred_stances_nb, digits=4)
 
         macro_f_nb = fbeta_score(train_labels, pred_stances_nb, 1.0,

@@ -2,13 +2,14 @@ import re
 import csv
 import random
 import numpy as np
-from itertools import groupby
+import urllib
 import nltk
+from itertools import groupby
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.sentiment import vader as vader
-import urllib
 from bs4 import BeautifulSoup
+from scipy import sparse
 # When using vader.SentimentIntensityAnalyzer() sentiment methods, you might have to download and store this in
 # /Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/nltk/sentiment/vader_lexicon.txt'
 # https://github.com/nltk/nltk/blob/develop/nltk/sentiment/vader_lexicon.txt
@@ -517,58 +518,69 @@ def convertStancesToText(allNumberedStances):
     return textStances
 
 
-def determineNegationFeature(text):
+def determineNegationFeature(texts):
     """
     Creates feature (0 or 1) for whether the tweet contains negated segments or not
 
     :param doc_name:    Tweet as string
     :return:            Binary value (0 or 1)
     """
-    feature = vader.negated(text, include_nt=True)
-    if feature:
-        return float(1)
-    else:
-        return float(0)
+    negated = []
+    for text in texts:
+        feature = vader.negated(text, include_nt=True)
+        if feature:
+            negated.append(float(1))
+        else:
+            negated.append(float(0))
+    return sparse.csr_matrix(negated, dtype='float').T
 
+#print determineNegationFeature(["hei hei hva skjer", "jada daj ladl"])
 
-def lengthOfTweetFeature(text):
+def lengthOfTweetFeature(texts):
     """
     Creates a normalized feature between 0 and 1 for the length of the tweet
 
     :param doc_name:    Tweet as string
     :return:            Float between 0 and 1
     """
-    return len(text)/140.0  #Maximunm length of a tweet
+    length = [float(len(text)/140.0) for text in texts]     #Maximunm length of a tweet
+    return sparse.csr_matrix(length, dtype='float').T
 
+#print lengthOfTweetFeature(["hei hei hva skjer", "jada daj ladl"])
 
-def numberOfTokensFeature(text):
+def numberOfTokensFeature(texts):
     """
     Finds the number of tokens in a tweet
 
     :param doc_name:    Tweet as string
     :return:            Integer
     """
-    return float(len(word_tokenize(text)))
+    length = [float(len(word_tokenize(text))) for text in texts]
+    return sparse.csr_matrix(length, dtype='float').T
 
 
-def numberOfCapitalWords(text):
+def numberOfCapitalWords(texts):
     """
     Finds the number of capital words in a tweet
 
     :param text:        Tweet as string
     :return:            Integer number of capital words
     """
-    capitalized = []
-    if vader.allcap_differential(word_tokenize(text)):
-        for word in word_tokenize(text):
-            if word.isupper():
-                capitalized.append(word)
-        return float(len(capitalized))
-    else:
-        return float(0)
+    capitalWords = []
+    for text in texts:
+        capitalized = []
+        if vader.allcap_differential(word_tokenize(text)):
+            for word in word_tokenize(text):
+                if word.isupper():
+                    capitalized.append(word)
+            capitalWords.append(float(len(capitalized)))
+        else:
+            capitalWords.append(float(0))
+    return sparse.csr_matrix(capitalWords, dtype='float').T
+
 #print numberOfCapitalWords("HEI hvordan Gaar DET!")
 
-def numberOfNonSinglePunctMarks(text):
+def numberOfNonSinglePunctMarks(texts):
     """
     Finds the number of non-single punctuation marks in a tweet
 
@@ -576,32 +588,74 @@ def numberOfNonSinglePunctMarks(text):
     :return:            A list where first element is an integer number of punctuation marks and last element
                         is whether the last punctuation mark is ! or ? (either 0 or 1)
     """
-    counter = 0
-    isQuestionMarkOrExclamationMarkLast = 0
-    # for word in word_tokenize(text):
-    #     for i in range(len(word)):
-    #         # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
-    #         if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
-    #             counter += 1
-    #             if word[len(word)-1] in "!?":
-    #                 isQuestionMarkOrExclamationMarkLast = 1
-    #             break           # Break here otherwise a word like: "hello!!!!" will count as 3
-    word = word_tokenize(text)
-    for i in range(1, len(word)):
-        if (len(word[i]) == 1) and (word[i-1] in string.punctuation) and (word[i] in string.punctuation): #not (i == len(word)-1) and (word[i+1] in string.punctuation):
-            if word[i] in "!":
-                isQuestionMarkOrExclamationMarkLast = 1
-            else:
-                isQuestionMarkOrExclamationMarkLast = 0
-        elif (len(word[i]) == 1) and (word[i] in string.punctuation):
-            counter += 1
+    countz = []
+    exlcMark= []
+    for text in texts:
+        counter = 0
+        isQuestionMarkOrExclamationMarkLast = 0
+        # for word in word_tokenize(text):
+        #     for i in range(len(word)):
+        #         # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+        #         if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
+        #             counter += 1
+        #             if word[len(word)-1] in "!?":
+        #                 isQuestionMarkOrExclamationMarkLast = 1
+        #             break           # Break here otherwise a word like: "hello!!!!" will count as 3
+        word = word_tokenize(text)
+        for i in range(1, len(word)):
+            if (len(word[i]) == 1) and (word[i-1] in string.punctuation) and (word[i] in string.punctuation): #not (i == len(word)-1) and (word[i+1] in string.punctuation):
+                if word[i] in "!":
+                    isQuestionMarkOrExclamationMarkLast = 1
+                else:
+                    isQuestionMarkOrExclamationMarkLast = 0
+            elif (len(word[i]) == 1) and (word[i] in string.punctuation):
+                counter += 1
 
-    return [float(counter), isQuestionMarkOrExclamationMarkLast]
-#print numberOfNonSinglePunctMarks("hei hei!!#% Dette er en test !#!")
-#print numberOfNonSinglePunctMarks("hei !!! ho!?! $$ njsf$$%&!! nofnpr$$$$!?")
+        countz.append(float(counter))
+
+    return sparse.csr_matrix(countz, dtype='float').T
+
+#numberOfNonSinglePunctMarks(["hei hei!!#%", "Dette er en test !#!"])
+#numberOfNonSinglePunctMarks(["hei !!!",  "ho!?! $$ njsf$$%&!! nofnpr$$$$!?"])
 
 
-def numberOfLengtheningWords(text):
+def isExclamationMark(texts):
+    """
+    Finds the number of non-single punctuation marks in a tweet
+
+    :param text:        Tweet as a string
+    :return:            A list where first element is an integer number of punctuation marks and last element
+                        is whether the last punctuation mark is ! or ? (either 0 or 1)
+    """
+    exlcMark= []
+    for text in texts:
+        counter = 0
+        isQuestionMarkOrExclamationMarkLast = 0
+        # for word in word_tokenize(text):
+        #     for i in range(len(word)):
+        #         # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+        #         if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
+        #             counter += 1
+        #             if word[len(word)-1] in "!?":
+        #                 isQuestionMarkOrExclamationMarkLast = 1
+        #             break           # Break here otherwise a word like: "hello!!!!" will count as 3
+        word = word_tokenize(text)
+        for i in range(1, len(word)):
+            if (len(word[i]) == 1) and (word[i-1] in string.punctuation) and (word[i] in string.punctuation): #not (i == len(word)-1) and (word[i+1] in string.punctuation):
+                if word[i] in "!":
+                    isQuestionMarkOrExclamationMarkLast = 1
+                else:
+                    isQuestionMarkOrExclamationMarkLast = 0
+
+
+        exlcMark.append(isQuestionMarkOrExclamationMarkLast)
+
+
+    return sparse.csr_matrix(exlcMark, dtype='int').T
+
+
+
+def numberOfLengtheningWords(texts):
     """
     Counts the number of words that are longer than usual like: cooool.
     It will count every word that has (at least) three of the same consecutive letters
@@ -609,25 +663,33 @@ def numberOfLengtheningWords(text):
     :param text:        Tweet as a string
     :return:            Integer number of lengthening words.
     """
-    counter = 0
-    for word in word_tokenize(text):
-        for i in range(len(word)):
-            letter = word[i]
-            if (len(word) > 2) and (i < len(word)-2) and (word[i+1] == letter) and (word[i+2] == letter):
-                counter +=1
-                break
-    return float(counter)
+    lengthening = []
+    for text in texts:
+        counter = 0
+        for word in word_tokenize(text):
+            for i in range(len(word)):
+                letter = word[i]
+                if (len(word) > 2) and (i < len(word)-2) and (word[i+1] == letter) and (word[i+2] == letter):
+                    counter +=1
+                    break
+        lengthening.append(float(counter))
+
+    return sparse.csr_matrix(lengthening, dtype='float').T
 #print numberOfLengtheningWords("cooolll balll hey how arre you")
 
 
-def determineSentiment(text):
+def determineSentiment(texts):
     """
     Determines the sentiment of a tweet based on the vader module
 
     :param text:        Tweet as a string
     :return:            Returns a dict of {neg:x, neu:y, pos:z, compound:w}
     """
-    return vader.SentimentIntensityAnalyzer().polarity_scores(text)
+    sentiment = []
+    for text in texts:
+        # Adding 1.0 because Naive Bayes doesnt do well with negative values.
+        sentiment.append(vader.SentimentIntensityAnalyzer().polarity_scores(text)['compound'] + 1.0)
+    return sparse.csr_matrix(sentiment, dtype='float').T
 
 def getPOStags(tweet):
     """

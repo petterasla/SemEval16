@@ -5,6 +5,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report
 from sklearn.metrics import fbeta_score
 from nltk.tokenize import word_tokenize
+from sklearn.ensemble import VotingClassifier
 import processTrainingData as ptd
 import writePredictionsToFile as write
 import os
@@ -12,7 +13,7 @@ import numpy as np
 import time
 
 
-# ****** TIME *****************************************************************************************************
+# ****** TIME **********************************************************************************************************
 start_time = time.time()
 
 
@@ -52,10 +53,10 @@ use_negation                = 1     # 1 = true, 0 = false   # Returns 0/1 if the
 use_lengthOfTweet           = 1     # 1 = true, 0 = false   # Returns length of the tweet x/140
 use_numberOfTokens          = 1     # 1 = true, 0 = false   # Returns number of words in the tweet
 use_numberOfCapitalWords    = 1     # 1 = true, 0 = false   # Returns number of capital words in the tweet
-use_numberOfPunctMarks      = 1     # 1 = true, 0 = false   # Returns number of non-single punct. marks in tweet(i.e !!)
+use_numberOfPunctMarks      = 0     # 1 = true, 0 = false   # Returns number of non-single punct. marks in tweet(i.e !!)
 use_numberOfLengtheningWord = 1     # 1 = true, 0 = false   # Returns number of words that are lengthen (i.e: cooool)
 use_sentimentAnalyzer       = 1     # 1 = true, 0 = false   # Returns number between -1 and 1 as compound of pos,neu,neg
-use_posAndNegWord           = 0     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
+use_posAndNegWord           = 1     # 1 = true, 0 = false   # Returns a list [pos, neg] based on number of pos/neg words
 # WARNING - BENEATH TAKES 4EVER (20 min med kun topic=climate)
 use_numberOfPronouns        = 0     # 1 = true, 0 = false   # Returns number of pronouns in the tweet
 
@@ -402,13 +403,13 @@ print "\nCreating and training classifiers: - Time used so far (in sec): " + str
 if use_svm:
     print "\t - Train SVM classifier..."
     #Create a SVM model
-    clf = svm.LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
-                         intercept_scaling=1, loss='squared_hinge', max_iter=1000,
-                         multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
-                         verbose=0)
-    #clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
-    #              gamma='auto', kernel='linear', max_iter=-1, probability=True,
-    #              random_state=None, shrinking=True, tol=0.001, verbose=False)
+    #clf = svm.LinearSVC(C=1.0, class_weight=None, dual=True, fit_intercept=True,
+    #                     intercept_scaling=1, loss='squared_hinge', max_iter=1000,
+    #                     multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
+    #                     verbose=0)
+    clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+                  gamma='auto', kernel='linear', max_iter=-1, probability=True,
+                  random_state=None, shrinking=True, tol=0.001, verbose=False)
 
     # Fit model
     clf.fit(train_data_features, train_labels)
@@ -456,8 +457,7 @@ if use_svm:
     svm_predictions = clf.predict(test_data_features)
 
     if print_classification_report:
-        pred_stances_svm = cross_validation.cross_val_predict(clf, train_data_features,
-                                         train_labels, cv=kf)
+        pred_stances_svm = cross_validation.cross_val_predict(clf, train_data_features, train_labels, cv=kf)
         print classification_report(train_labels, pred_stances_svm, digits=4)
 
         macro_f_svm = fbeta_score(train_labels, pred_stances_svm, 1.0,
@@ -469,8 +469,7 @@ if use_dummy:
     dummy_predictions = clf_dummy.predict(test_data_features)
 
     if print_classification_report:
-        pred_stances_dummy = cross_validation.cross_val_predict(clf_dummy, train_data_features,
-                                                          train_labels, cv=kf)
+        pred_stances_dummy = cross_validation.cross_val_predict(clf_dummy, train_data_features, train_labels, cv=kf)
         print classification_report(train_labels, pred_stances_dummy, digits=4)
 
         macro_f_dummy = fbeta_score(train_labels, pred_stances_dummy, 1.0,
@@ -482,13 +481,25 @@ if use_nb:
     nb_predictions = clf_nb.predict(test_data_features)
 
     if print_classification_report:
-        pred_stances_nb = cross_validation.cross_val_predict(clf_nb, train_data_features,
-                                                          train_labels, cv=kf)
+        pred_stances_nb = cross_validation.cross_val_predict(clf_nb, train_data_features, train_labels, cv=kf)
         print classification_report(train_labels, pred_stances_nb, digits=4)
 
         macro_f_nb = fbeta_score(train_labels, pred_stances_nb, 1.0,
                               labels=['AGAINST', 'FAVOR'], average='macro')
         print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f_nb)
+
+print "\nVoting classifier:"
+vot_clf = VotingClassifier(estimators=[('SVM', clf),
+                                       ('NB', clf_nb)],
+                           voting='soft',
+                           weights=[1, 1])
+
+pred_stances_vot = cross_validation.cross_val_predict(vot_clf, train_data_features, train_labels, cv=kf)
+print classification_report(train_labels, pred_stances_vot, digits=4)
+
+macro_f_vot = fbeta_score(train_labels, pred_stances_vot, 1.0,
+                      labels=['AGAINST', 'FAVOR'], average='macro')
+print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f_vot)
 
 
 # ******* Probabilities ************************************************************************************************

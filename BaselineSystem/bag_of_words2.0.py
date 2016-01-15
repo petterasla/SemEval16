@@ -445,7 +445,7 @@ pipeline_svm = make_pipeline(
             FunctionTransformer(ptd.numberOfNonSinglePunctMarks, validate=False),
             FunctionTransformer(ptd.isExclamationMark, validate=False),
             FunctionTransformer(ptd.numberOfLengtheningWords, validate=False),
-            FunctionTransformer(ptd.determineSentiment, validate=False)
+            #FunctionTransformer(ptd.determineSentiment, validate=False)
             ),
         clf)
 
@@ -461,7 +461,7 @@ pipeline_nb = make_pipeline(
             FunctionTransformer(ptd.numberOfNonSinglePunctMarks, validate=False),
             FunctionTransformer(ptd.isExclamationMark, validate=False),
             FunctionTransformer(ptd.numberOfLengtheningWords, validate=False),
-            FunctionTransformer(ptd.determineSentiment, validate=False)
+            #FunctionTransformer(ptd.determineSentiment, validate=False)
         ),
         clf_nb)
 

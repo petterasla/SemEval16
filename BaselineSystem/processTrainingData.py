@@ -2,6 +2,7 @@ import re
 import csv
 import random
 import numpy as np
+from itertools import groupby
 import nltk
 from nltk.stem.porter import PorterStemmer
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -577,17 +578,27 @@ def numberOfNonSinglePunctMarks(text):
     """
     counter = 0
     isQuestionMarkOrExclamationMarkLast = 0
-    for word in word_tokenize(text):
-        for i in range(len(word)):
-            # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
-            if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
-                counter += 1
-                if word[len(word)-1] in "!?":
-                    isQuestionMarkOrExclamationMarkLast = 1
-                break           # Break here otherwise a word like: "hello!!!!" will count as 3
+    # for word in word_tokenize(text):
+    #     for i in range(len(word)):
+    #         # string.punctuation contains: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+    #         if (word[i] in string.punctuation) and not (i == len(word)-1) and (word[i+1] in string.punctuation):
+    #             counter += 1
+    #             if word[len(word)-1] in "!?":
+    #                 isQuestionMarkOrExclamationMarkLast = 1
+    #             break           # Break here otherwise a word like: "hello!!!!" will count as 3
+    word = word_tokenize(text)
+    for i in range(1, len(word)):
+        if (len(word[i]) == 1) and (word[i-1] in string.punctuation) and (word[i] in string.punctuation): #not (i == len(word)-1) and (word[i+1] in string.punctuation):
+            if word[i] in "!":
+                isQuestionMarkOrExclamationMarkLast = 1
+            else:
+                isQuestionMarkOrExclamationMarkLast = 0
+        elif (len(word[i]) == 1) and (word[i] in string.punctuation):
+            counter += 1
 
     return [float(counter), isQuestionMarkOrExclamationMarkLast]
 #print numberOfNonSinglePunctMarks("hei hei!!#% Dette er en test !#!")
+#print numberOfNonSinglePunctMarks("hei !!! ho!?! $$ njsf$$%&!! nofnpr$$$$!?")
 
 
 def numberOfLengtheningWords(text):
@@ -685,4 +696,4 @@ def getSkepticalTweets():
         tweets.append(text[startIndex:endIndex])
     return tweets
 
-getSkepticalTweets()
+#print getSkepticalTweets()

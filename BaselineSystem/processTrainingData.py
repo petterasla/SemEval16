@@ -120,6 +120,13 @@ def getTopicTestData(topic):
             topicData.append(data[i])
     return topicData
 
+def getAllRawTweets(data):
+    raw_data = []
+    for sample in data:
+        raw_data.append(sample[2])
+
+    return raw_data
+
 def getAnnotatedData():
     """
 

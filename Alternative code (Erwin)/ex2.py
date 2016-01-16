@@ -6,6 +6,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report
 from sklearn.cross_validation import cross_val_predict, StratifiedKFold
 from sklearn.metrics import fbeta_score
+from sklearn import svm
 
 # import matplotlib
 # import matplotlib.pyplot as plt
@@ -41,7 +42,10 @@ for analyzer in 'word', 'char', 'char_wb':
                                                                   min_df=min_df,
                                                                   ngram_range=ngram_range,
                                                                   analyzer=analyzer)),
-                                         ('clf', MultinomialNB())])
+                                         ('clf', svm.LinearSVC(C=0.1, class_weight=None, dual=True, fit_intercept=True,
+                                                               intercept_scaling=1, loss='squared_hinge', max_iter=1000,
+                                                               multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
+                                                               verbose=0))])
                     print pipeline
 
                     pred_stances = cross_val_predict(pipeline, target_data.Tweet, target_data.Stance, cv=cv)

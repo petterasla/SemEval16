@@ -191,7 +191,7 @@ def getAllTweetsWithoutHashOrAlphaTag(tweet_list):
     """
 
     tweets = []
-    for line in tweet_list:
+    for line in tweet_list.Tweet:
         indices = []
         s = line
         hashStartIndex = line.find("#")
@@ -219,7 +219,10 @@ def getAllTweetsWithoutHashOrAlphaTag(tweet_list):
         stopIndex = s1.find("#SemST")
         s1 = s1[:stopIndex]
         tweets.append(s1)
-    return tweets
+
+    for i in range(614, 1009):
+        tweet_list.Tweet.set_value(i, tweets[i-614])
+    return tweet_list
 
 
 def getAllStances(data_file="All"):
@@ -378,17 +381,19 @@ def train_test_split_on_stance(data, test_data, favor_p, against_p, none_p):
 def stemming(data):
     pt = PorterStemmer()
     new_data = []
-    for tweet in data:
+    for tweet in data.Tweet:
         words = word_tokenize(tweet)
         stemmed_words = []
         for word in words:
             stemmed_words.append(pt.stem(word))
         new_tweet = ""
         for word in stemmed_words:
-            new_tweet = new_tweet + " " + word + " "
+            new_tweet = new_tweet + " " + word
         new_data.append(new_tweet)
 
-    return new_data
+    for i in range(614, 1009):
+        data.Tweet.set_value(i, new_data[i-614])
+    return data
 #data = getAllTweets(getTopicData(TOPIC2)[0:3])
 #print data
 #k = stemming(data)
@@ -398,7 +403,7 @@ def stemming(data):
 def lemmatizing(data):
     lem = WordNetLemmatizer()
     new_data = []
-    for tweet in data:
+    for tweet in data.Tweet:
         #tweet = tweet.lower()
         words = word_tokenize(tweet)
         lemmatized = []
@@ -408,7 +413,10 @@ def lemmatizing(data):
         for word in lemmatized:
             new_tweet = new_tweet + " " + word
         new_data.append(new_tweet)
-    return new_data
+
+    for i in range(614, 1009):
+        data.Tweet.set_value(i, new_data[i-614])
+    return data
 #data = getAllTweets(getTopicData(TOPIC2))
 #print data[:3]
 #k = lemmatizing(data)

@@ -1,4 +1,4 @@
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn import svm, cross_validation
 from sklearn import dummy
 from sklearn.naive_bayes import MultinomialNB
@@ -34,6 +34,11 @@ TOPIC5  = "Legalization of Abortion"
 topic       = TOPIC2                # Select a topic that will be used as data
 test_topic  = TOPIC2                # Select a topic that will be used for testing
 
+use_lemming                 = 0 #nope
+# or
+use_stemming                = 0 #nope
+use_removeAtAndHashtags     = 0 #nope
+
 use_labelprop               = 0
 use_svm                     = 1
 use_nb                      = 1
@@ -53,6 +58,18 @@ label_prop_data = pd.read_csv(open('label_propagated_data.txt'), '\t', index_col
 label_prop_targets = list(original_data.Target.unique()) + ['All']
 
 target_data = original_data[original_data.Target == topic]
+print target_data.Tweet
+
+if use_removeAtAndHashtags:
+    target_data = ptd.getAllTweetsWithoutHashOrAlphaTag(target_data)
+    print target_data.Tweet
+
+if use_lemming:
+    target_data = ptd.lemmatizing(target_data)
+    print target_data.Tweet
+elif use_stemming:
+    target_data = ptd.stemming(target_data)
+    print target_data.Tweet
 
 if use_labelprop:
     all_data = original_data + label_prop_data
@@ -108,6 +125,9 @@ vectorizer2_4GramOptimizedSVM2 = CountVectorizer(analyzer="char_wb",
                                            min_df=1,
                                            decode_error='ignore')
 
+tfidf_vectorizer1_2OptimizedSVM = TfidfVectorizer(analyzer = 'word',
+                                                  ngram_range=(1,2),
+                                                  min_df=1)
 
 # ****** Cross validation on classifiers *******************************************************************************
 kf = cross_validation.StratifiedKFold(target_data.Stance, n_folds=5, shuffle=True, random_state=1)
@@ -161,6 +181,7 @@ pipeline_svm = make_pipeline(
         #vectorizer3GramOptimizedNB,
         vectorizer2_4GramOptimizedSVM,
         #vectorizer2_4GramOptimizedSVM2,
+        #tfidf_vectorizer1_2OptimizedSVM,
         #FunctionTransformer(ptd.determineNegationFeature, validate=False),
         #FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
         FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
@@ -197,6 +218,7 @@ pipeline_svm2 = make_pipeline(
         #vectorizer3GramOptimizedNB,
         #vectorizer2_4GramOptimizedSVM,
         vectorizer2_4GramOptimizedSVM2,
+        #tfidf_vectorizer1_2OptimizedSVM,
         #FunctionTransformer(ptd.determineNegationFeature, validate=False),
         #FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
         #FunctionTransformer(ptd.numberOfTokensFeature, validate=False),

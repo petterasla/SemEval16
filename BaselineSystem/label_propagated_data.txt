@@ -1,3 +1,4 @@
+ID	Target	Tweet	Stance
 10000	Climate Change is a Real Concern	San Luis Obispo Approves Large Retrofit Project https://t.co/CI95NUs9p #energy #efficiency #CA #usa #climate #nicejob	FAVOR
 10001	Climate Change is a Real Concern	China lied? Really? They all lie. Just know that. #Climate #TruthTelling #WhatTheWhat	NONE
 10002	Climate Change is a Real Concern	join us on 9/11 in Brussels at this event https://t.co/6CcFtwYAUw #FoodSecurity #Climate &amp; #PrivateSector w GerdaVerburg europeaid Nestle…	FAVOR

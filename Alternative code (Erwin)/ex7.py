@@ -1,3 +1,5 @@
+import os
+
 from glob import glob
 
 import pandas as pd
@@ -15,6 +17,15 @@ from sklearn.preprocessing import Normalizer
 
 from glove_transformer import GloveVectorizer
 
+import writePredictionsToFile as write
+
+import processTrainingData as ptd
+
+use_writeToFile = 1
+
+test_data = pd.read_csv(open('SemEval2016-Task6-subtaskA-testdata.txt'), '\t', index_col=0)
+#test_data = test_data[test_data.Target == 'Climate Change is a Real Concern']
+
 data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t', index_col=0)
 data = data[data.Target == 'Climate Change is a Real Concern']
 true_stances = data.Stance
@@ -23,6 +34,8 @@ cv = StratifiedKFold(true_stances, n_folds=5, shuffle=True, random_state=1)
 
 glove_fnames = glob('*.pkl')
 glove_ids = [fname.split('/')[-1].split('_')[0] for fname in glove_fnames]
+
+best_model_score = 0
 
 for fname, glove_id in zip(glove_fnames, glove_ids):
     print 80 * '='
@@ -74,3 +87,63 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
     macro_f = fbeta_score(true_stances, pred_stances, 1.0,
                           labels=['AGAINST', 'FAVOR'], average='macro')
     print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f)
+
+    if macro_f > best_model_score:
+        best_model = vot_clf
+        best_predictions = pred_stances
+
+if use_writeToFile:
+    print "Writing gold and guesses to file..."
+    best_model.fit(data.Tweet,true_stances)
+    predictions = vot_clf.predict(test_data.Tweet)
+
+    # Erwin annotated test data:
+    annotated = ptd.getAnnotatedData()
+    erwinsAnnotated = ptd.convertNumberStanceToText([int(row[1]) for row in annotated])
+
+    print len(erwinsAnnotated) == len(test_data.Stance)
+
+    #svm_guess_file = write.initFile("guess_svm")
+    #dummy_guess_file = write.initFile("guess_dummy")
+    #nb_guess_file = write.initFile("guess_nb")
+    gold_file = write.initFile("gold")
+    pred_file = write.initFile("predictions")
+
+    counter = 0
+    for row  in test_data.itertuples():
+        id = str(row[0])
+        target = str(row.Target)
+        tweet = str(row.Tweet)
+
+        #if max(svm_predictions_probabilities[index]) > minConfidence:
+        #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], svm_predictions[index], svm_guess_file)
+        #else:
+        #   write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], "NONE", svm_guess_file)
+
+        if target != 'Climate Change is a Real Concern':
+            write.writePrdictionToFile(id, target, tweet,'UNKNOWN', pred_file)
+        else:
+            write.writePrdictionToFile(id, target, tweet, predictions[counter], pred_file)
+        #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], nb_predictions[index], nb_guess_file)
+        #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
+        #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
+        #write.writePrdictionToFile(id, target, tweet, erwinsAnnotated[counter], gold_file)
+        counter += 1
+
+    #svm_guess_file.close()
+    #dummy_guess_file.close()
+    gold_file.close()
+    #nb_guess_file.close()
+    pred_file.close()
+
+
+    #*********** Evaluate the result with the given SemEval16 script *******************************************************
+    print "\nResults:\n"
+    #print "Dummy prediction score: "
+    #os.system("perl eval.pl gold.txt guess_dummy.txt")
+    #print "SVM prediction score: "
+    #os.system("perl eval.pl gold.txt guess_svm.txt")
+    #print "Naive Bayes prediction score: "
+    #os.system("perl eval.pl gold.txt guess_nb.txt")
+    print "Prediction score: "
+    os.system("perl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/BaselineSystem/eval.pl gold.txt predictions.txt")

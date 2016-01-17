@@ -39,17 +39,28 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
                                                      class_weight='balanced',
                                                      ))])
 
-    char_clf = Pipeline([('vect', CountVectorizer(decode_error='ignore',
-                                                  lowercase=False,
+    char_clf = Pipeline([('vect', CountVectorizer(analyzer="char",
+                                                  ngram_range=(3,3),
+                                                  lowercase=True,
+                                                  binary=False,
                                                   min_df=5,
-                                                  ngram_range=(3, 3),
-                                                  analyzer='char')),
+                                                  decode_error='ignore')),
                          ('clf', MultinomialNB())])
 
     word_clf = Pipeline([('vect', CountVectorizer(decode_error='ignore',
                                                   lowercase=False,
                                                   ngram_range=(2, 2))),
                          ('clf', MultinomialNB())])
+
+    # svm_clf = Pipeline([('char_wb',CountVectorizer(analyzer="char_wb",
+    #                                     ngram_range=(2,4),
+    #                                     lowercase=False,
+    #                                     binary=False,
+    #                                     min_df=1,
+    #                                     decode_error='ignore')),
+    #                     ('clf', SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3,
+    #                                 gamma='auto', kernel='linear', max_iter=-1, probability=True,
+    #                                 random_state=None, shrinking=True, tol=0.001, verbose=False))])
 
     vot_clf = VotingClassifier(estimators=[('char', char_clf),
                                            ('word', word_clf),

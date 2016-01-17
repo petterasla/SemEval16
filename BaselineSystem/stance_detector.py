@@ -1,6 +1,7 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-from sklearn import svm, cross_validation
+from sklearn import svm#, cross_validation
 from sklearn import dummy
+from sklearn.cross_validation import StratifiedKFold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report
 from sklearn.metrics import fbeta_score
@@ -14,6 +15,10 @@ import os
 import numpy as np
 import time
 import pandas as pd
+import cross_val_generator                              # Custom fold generation
+from custom_cross_validation import cross_val_predict   # custom scikit cross validation
+
+
 
 
 # ****** TIME **********************************************************************************************************
@@ -39,7 +44,7 @@ use_lemming                 = 0 #nope
 use_stemming                = 0 #nope
 use_removeAtAndHashtags     = 0 #nope
 
-use_labelprop               = 0
+use_labelprop               = 1
 use_svm                     = 1
 use_nb                      = 1
 use_dummy                   = 1
@@ -54,11 +59,12 @@ print "\nPreprocessing..."
 original_data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t', index_col=0)
 original_targets = list(original_data.Target.unique()) + ['All']
 
-label_prop_data = pd.read_csv(open('label_propagated_data.txt'), '\t', index_col=0)
-label_prop_targets = list(original_data.Target.unique()) + ['All']
+include=None
+#label_prop_data = pd.read_csv(open('label_propagated_data.txt'), '\t', index_col=0)
+#label_prop_targets = list(original_data.Target.unique()) + ['All']
 
 target_data = original_data[original_data.Target == topic]
-print target_data.Tweet
+#print target_data.Tweet
 
 if use_removeAtAndHashtags:
     target_data = ptd.getAllTweetsWithoutHashOrAlphaTag(target_data)
@@ -72,7 +78,12 @@ elif use_stemming:
     print target_data.Tweet
 
 if use_labelprop:
-    all_data = original_data + label_prop_data
+    label_prop_data = pd.read_csv(open('label_propagated_data.txt'), '\t', index_col=0)
+    label_prop_targets = list(original_data.Target.unique()) + ['All']
+
+    include = len(original_data[original_data.Target == topic])
+    target_data = pd.concat([original_data[original_data.Target == topic], label_prop_data[label_prop_data.Target == topic]], axis=0)
+
 
 # classifiers = MultinomialNB(), \
 #               svm.LinearSVC(C=0.1, class_weight=None, dual=True, fit_intercept=True,
@@ -130,7 +141,15 @@ tfidf_vectorizer1_2OptimizedSVM = TfidfVectorizer(analyzer = 'word',
                                                   min_df=1)
 
 # ****** Cross validation on classifiers *******************************************************************************
-kf = cross_validation.StratifiedKFold(target_data.Stance, n_folds=5, shuffle=True, random_state=1)
+if use_labelprop:
+    kf = cross_val_generator.generateFolds(target_data.Stance, n_folds=5, shuffle=False,
+                                            random_state=1, exclude_from_test=include)
+    data = original_data[original_data.Target == topic]
+
+else:
+    kf = StratifiedKFold(target_data.Stance, n_folds=5, shuffle=False, random_state=1)
+    data = target_data
+
 
 # === NAIVE BAYES ===
 clf_nb = MultinomialNB()
@@ -144,6 +163,7 @@ pipeline_nb = make_pipeline(
         vectorizer3GramOptimizedNB,
         #vectorizer2_4GramOptimizedSVM,
         #vectorizer2_4GramOptimizedSVM2,
+      # tfidf_vectorizer1_2OptimizedSVM,
         #FunctionTransformer(ptd.determineNegationFeature, validate=False),
         #FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
         #FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
@@ -155,11 +175,11 @@ pipeline_nb = make_pipeline(
     ),
     clf_nb)
 
-pred_stances_nb = cross_validation.cross_val_predict(pipeline_nb, target_data.Tweet,target_data.Stance, cv=kf)
+pred_stances_nb = cross_val_predict(pipeline_nb, target_data.Tweet,target_data.Stance, cv=kf)
 
-print classification_report(target_data.Stance, pred_stances_nb, digits=4)
+print classification_report(data.Stance, pred_stances_nb, digits=4)
 
-macro_f_nb = fbeta_score(target_data.Stance, pred_stances_nb, 1.0,
+macro_f_nb = fbeta_score(data.Stance, pred_stances_nb, 1.0,
                          labels=['AGAINST', 'FAVOR'],
                          average='macro')
 
@@ -181,7 +201,7 @@ pipeline_svm = make_pipeline(
         #vectorizer3GramOptimizedNB,
         vectorizer2_4GramOptimizedSVM,
         #vectorizer2_4GramOptimizedSVM2,
-        #tfidf_vectorizer1_2OptimizedSVM,
+      # tfidf_vectorizer1_2OptimizedSVM,
         #FunctionTransformer(ptd.determineNegationFeature, validate=False),
         #FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
         FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
@@ -193,11 +213,11 @@ pipeline_svm = make_pipeline(
     ),
     clf_svm)
 
-pred_stances_svm = cross_validation.cross_val_predict(pipeline_svm, target_data.Tweet,target_data.Stance, cv=kf)
+pred_stances_svm = cross_val_predict(pipeline_svm, target_data.Tweet,target_data.Stance, cv=kf)
 
-print classification_report(target_data.Stance, pred_stances_svm, digits=4)
+print classification_report(data.Stance, pred_stances_svm, digits=4)
 
-macro_f_svm = fbeta_score(target_data.Stance, pred_stances_svm, 1.0,
+macro_f_svm = fbeta_score(data.Stance, pred_stances_svm, 1.0,
                           labels=['AGAINST', 'FAVOR'],
                           average='macro')
 
@@ -218,7 +238,7 @@ pipeline_svm2 = make_pipeline(
         #vectorizer3GramOptimizedNB,
         #vectorizer2_4GramOptimizedSVM,
         vectorizer2_4GramOptimizedSVM2,
-        #tfidf_vectorizer1_2OptimizedSVM,
+      # tfidf_vectorizer1_2OptimizedSVM,
         #FunctionTransformer(ptd.determineNegationFeature, validate=False),
         #FunctionTransformer(ptd.lengthOfTweetFeature, validate=False),
         #FunctionTransformer(ptd.numberOfTokensFeature, validate=False),
@@ -230,11 +250,11 @@ pipeline_svm2 = make_pipeline(
     ),
     clf_svm2)
 
-pred_stances_svm2 = cross_validation.cross_val_predict(pipeline_svm2, target_data.Tweet,target_data.Stance, cv=kf)
+pred_stances_svm2 = cross_val_predict(pipeline_svm2, target_data.Tweet,target_data.Stance, cv=kf)
 
-print classification_report(target_data.Stance, pred_stances_svm2, digits=4)
+print classification_report(data.Stance, pred_stances_svm2, digits=4)
 
-macro_f_svm2 = fbeta_score(target_data.Stance, pred_stances_svm2, 1.0,
+macro_f_svm2 = fbeta_score(data.Stance, pred_stances_svm2, 1.0,
                            labels=['AGAINST', 'FAVOR'],
                            average='macro')
 
@@ -262,7 +282,7 @@ print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(ma
 #     ),
 #     clf_dummy)
 #
-# pred_stances_dummy = cross_validation.cross_val_predict(pipeline_dummy, target_data.Tweet,target_data.Stance, cv=kf)
+# pred_stances_dummy = cross_val_predict(pipeline_dummy, target_data.Tweet,target_data.Stance, cv=kf)
 #
 # print classification_report(target_data.Stance, pred_stances_dummy, digits=4)
 #
@@ -279,10 +299,10 @@ vot_clf = VotingClassifier(estimators=[('NB', pipeline_nb),
                            voting='soft',
                            weights=[1, 1])
 
-pred_stances = cross_validation.cross_val_predict(vot_clf, target_data.Tweet, target_data.Stance, cv=kf)
-print classification_report(target_data.Stance, pred_stances, digits=4)
+pred_stances = cross_val_predict(vot_clf, target_data.Tweet, target_data.Stance, cv=kf)
+print classification_report(data.Stance, pred_stances, digits=4)
 
-macro_f = fbeta_score(target_data.Stance, pred_stances, 1.0,
+macro_f = fbeta_score(data.Stance, pred_stances, 1.0,
                       labels=['AGAINST', 'FAVOR'],
                       average='macro')
 print 'macro-average of F-score(FAVOR) and F-score(AGAINST): {:.4f}\n'.format(macro_f)

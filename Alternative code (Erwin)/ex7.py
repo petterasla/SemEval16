@@ -4,14 +4,14 @@ from glob import glob
 
 import pandas as pd
 
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion, make_pipeline, make_union
 from sklearn.svm import SVC, LinearSVC
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.cross_validation import cross_val_predict, StratifiedKFold
 from sklearn.metrics import fbeta_score
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.ensemble import VotingClassifier
 from sklearn.preprocessing import Normalizer
 
@@ -21,7 +21,7 @@ import writePredictionsToFile as write
 
 import processTrainingData as ptd
 
-use_writeToFile = 1
+use_writeToFile =  1
 
 test_data = pd.read_csv(open('SemEval2016-Task6-subtaskA-testdata.txt'), '\t', index_col=0)
 #test_data = test_data[test_data.Target == 'Climate Change is a Real Concern']
@@ -35,7 +35,7 @@ cv = StratifiedKFold(true_stances, n_folds=5, shuffle=True, random_state=1)
 glove_fnames = glob('*.pkl')
 glove_ids = [fname.split('/')[-1].split('_')[0] for fname in glove_fnames]
 
-best_model_score = 0
+best_model_score = 0.0
 
 for fname, glove_id in zip(glove_fnames, glove_ids):
     print 80 * '='
@@ -65,6 +65,30 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
                                                   ngram_range=(2, 2))),
                          ('clf', MultinomialNB())])
 
+    clf = Pipeline([('vect', HashingVectorizer(input='content', encoding='utf-8', decode_error='strict',
+                                               strip_accents=None, lowercase=True, preprocessor=None,
+                                               tokenizer=None, stop_words=None, token_pattern='(?u)\b\w\w+\b',
+                                               ngram_range=(1, 1), analyzer='word', n_features=1048576,
+                                               binary=False, norm='l2', non_negative=False)),
+                    ('clf', SVC(probability=True))])
+
+    pipeline_svm2 = make_pipeline(
+        make_union(
+            CountVectorizer(decode_error='ignore'),
+            CountVectorizer(analyzer="char_wb",
+                            ngram_range=(2,4),
+                            lowercase=False,
+                            binary=False,
+                            min_df=1,
+                            decode_error='ignore'),
+            HashingVectorizer(input='content', encoding='utf-8', decode_error='strict',
+                              strip_accents=None, lowercase=True, preprocessor=None,
+                              tokenizer=None, stop_words=None, token_pattern='(?u)\b\w\w+\b',
+                              ngram_range=(1, 1), analyzer='word', n_features=1048576,
+                              binary=False, norm='l2', non_negative=False)
+
+        ), SVC(probability=True))
+
     # svm_clf = Pipeline([('char_wb',CountVectorizer(analyzer="char_wb",
     #                                     ngram_range=(2,4),
     #                                     lowercase=False,
@@ -91,11 +115,12 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
     if macro_f > best_model_score:
         best_model = vot_clf
         best_predictions = pred_stances
+        best_model_score = macro_f
 
 if use_writeToFile:
     print "Writing gold and guesses to file..."
     best_model.fit(data.Tweet,true_stances)
-    predictions = vot_clf.predict(test_data.Tweet)
+    predictions = best_model.predict(test_data.Tweet)
 
     # Erwin annotated test data:
     annotated = ptd.getAnnotatedData()
@@ -147,3 +172,5 @@ if use_writeToFile:
     #os.system("perl eval.pl gold.txt guess_nb.txt")
     print "Prediction score: "
     os.system("perl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/BaselineSystem/eval.pl gold.txt predictions.txt")
+
+print best_model_score

@@ -27,11 +27,11 @@ vectorizer.fit(target_data.Tweet)
 tweet_vocab = set(vectorizer.get_feature_names())
 
 # Local copies of Glove vectors of different dimensions
-inf = '/Users/Henrik/Downloads/glove/glove.twitter.27B.{}d.txt'
-outf = 'semeval2016-task6-trainingdata_climate_glove.twitter.27B.{}d.pkl'
+inf = '/Users/Henrik/Downloads/glove.6B/glove.6B.{}d.txt'
+outf = 'semeval2016-task6-trainingdata_climate_glove.6B.{}d.pkl'
 
 
-for dim in 25, 50, 100, 200:
+for dim in 50, 100, 200, 300:
     # read Glove vectors
     # slurping the whole file with pd.read_cvs does not work as the table gets
     # get truncated! Presumably because of some kind of memory problem.

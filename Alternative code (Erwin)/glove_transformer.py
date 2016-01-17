@@ -30,12 +30,12 @@ class GloveVectorizer(BaseEstimator, TransformerMixin):
 if __name__ == '__main__':
     import pandas as pd
 
-    fname = 'semeval2016-task6-trainingdata_climate_glove.twitter.27B.25d.pkl'
+    fname = 'glove/semeval2016-task6-trainingdata_climate_glove.twitter.27B.25d.pkl'
     glove_vectors = pd.read_pickle(fname)
 
     data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t',
                        index_col=0)
-    data = data[data.Target == 'Climate Change is a Real Concern']
+    data = data[data.Target == "Climate Change is a Real Concern"]
 
     vectorizer = GloveVectorizer(glove_vectors)
 

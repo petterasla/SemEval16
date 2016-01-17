@@ -5,6 +5,7 @@ from glob import glob
 import pandas as pd
 
 from sklearn.pipeline import Pipeline, FeatureUnion, make_pipeline, make_union
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
 from sklearn.svm import SVC, LinearSVC
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -70,24 +71,27 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
                                                tokenizer=None, stop_words=None, token_pattern='(?u)\b\w\w+\b',
                                                ngram_range=(1, 1), analyzer='word', n_features=1048576,
                                                binary=False, norm='l2', non_negative=False)),
-                    ('clf', SVC(probability=True))])
+                    ('clf', SVC(C=1,probability=True))])
 
     pipeline_svm2 = make_pipeline(
         make_union(
             CountVectorizer(decode_error='ignore'),
-            CountVectorizer(analyzer="char_wb",
-                            ngram_range=(2,4),
-                            lowercase=False,
+            CountVectorizer(analyzer="char",
+                            ngram_range=(3,3),
+                            lowercase=True,
                             binary=False,
                             min_df=1,
                             decode_error='ignore'),
-            HashingVectorizer(input='content', encoding='utf-8', decode_error='strict',
+            HashingVectorizer(input='content', encoding='utf-8', decode_error='ignore',
                               strip_accents=None, lowercase=True, preprocessor=None,
-                              tokenizer=None, stop_words=None, token_pattern='(?u)\b\w\w+\b',
-                              ngram_range=(1, 1), analyzer='word', n_features=1048576,
-                              binary=False, norm='l2', non_negative=False)
+                              tokenizer=None, stop_words='english', token_pattern='(?u)\b\w\w+\b',
+                              ngram_range=(3, 3), analyzer='word', n_features=1048576,
+                              binary=False, norm='l2', non_negative=False),
+            #TfidfVectorizer(analyzer = 'word',
+             #               ngram_range=(1,2),
+              #              min_df=1)
 
-        ), SVC(probability=True))
+        ), MultinomialNB())
 
     # svm_clf = Pipeline([('char_wb',CountVectorizer(analyzer="char_wb",
     #                                     ngram_range=(2,4),
@@ -101,7 +105,9 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
 
     vot_clf = VotingClassifier(estimators=[('char', char_clf),
                                            ('word', word_clf),
-                                           ('glove', glove_clf)],
+                                           ('glove', glove_clf),
+                                           #('clf', clf)
+                                           ],
                                voting='hard',
                                weights=[1, 1, 2])
 
@@ -135,6 +141,7 @@ if use_writeToFile:
     pred_file = write.initFile("predictions")
 
     counter = 0
+    counter2 = 0
     for row  in test_data.itertuples():
         id = str(row[0])
         target = str(row.Target)
@@ -147,12 +154,14 @@ if use_writeToFile:
 
         if target != 'Climate Change is a Real Concern':
             write.writePrdictionToFile(id, target, tweet,'UNKNOWN', pred_file)
+            write.writePrdictionToFile(id, target, tweet, 'UNKNOWN', gold_file)
         else:
             write.writePrdictionToFile(id, target, tweet, predictions[counter], pred_file)
+            write.writePrdictionToFile(id, target, tweet, erwinsAnnotated[counter2], gold_file)
+            counter2 += 1
         #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], nb_predictions[index], nb_guess_file)
         #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], dummy_predictions[index], dummy_guess_file)
         #write.writePrdictionToFile(data_file[index][0], data_file[index][1], data_file[index][2], data_file[index][3], gold_file)
-        #write.writePrdictionToFile(id, target, tweet, erwinsAnnotated[counter], gold_file)
         counter += 1
 
     #svm_guess_file.close()

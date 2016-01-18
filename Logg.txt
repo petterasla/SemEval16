@@ -126,3 +126,16 @@ SemEval:
     - Fikset repeated punctuation feature, da den ikke funket (gammel er kommentert ut).
     - Prøvd å legge inn classifier som benytter seg av stemming, men den gjør det ikke så bra, så det er noe som ikke
     stemmer.
+
+15-18. januar:
+    Stratisfied Custom fold ble implementert så ikke label prop data eller skeptical data ble med i testingen. Tok tid..
+    Vi gjorde om våres implementering til Erwin's pipeline etc fordi vi lærte at modellen våres brukte detaljer som ville
+    være med i hvert test set - altså ikke helt legit. Vi prøvde vel også å få inn Label Prop og Skeptical tweets uten res.
+    Vi implementerte Erwins ex7.py og testet masse forskjellige parametre. Den bruker en GloVe taktikk og en voting-
+    classifier.
+    Implementert grid search for å finne optimaliserte parametre for modellen våres. Funket ikke i modellen våres,
+    men fikk overraskende 0.72 og 0.69 med henholdsvis LinearSVC og MultinomialNB.
+    Lagt inn individuelle modeller for hver av topicene(5 stk) i konkurransen.
+    Lagt inn så vi bestemmer om vi skal klassifisere eller hoppe over (unknown) basert på sannsynlighet.
+
+    LEVERE INN :)

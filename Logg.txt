@@ -139,3 +139,8 @@ SemEval:
     Lagt inn så vi bestemmer om vi skal klassifisere eller hoppe over (unknown) basert på sannsynlighet.
 
     LEVERE INN :)
+
+31. januar:
+    - Fått gold labels fra SemEval. Gikk over til after-deadline branchen. Sjekker resultatet våres hvis vi ikke hadde
+    brukt threshold i det hele tatt både overall og kun med climate target. Viser seg at hvis vi hadde droppet threshold
+    hadde vi havnet på macro f-score på 0.6654 i motsetning til våres nåværende res: 0.6247.. æsj. Jaja.

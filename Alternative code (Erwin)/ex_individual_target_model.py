@@ -159,7 +159,7 @@ for fname, glove_id in zip(glove_fnames, glove_ids):
 print best_model_score_list
 print mean(best_model_score_list)
 
-use_threshold = 1
+use_threshold = 0
 if use_writeToFile_all:
     print "Writing gold and guesses to file on all of the targets..."
     unknown_list = []
@@ -210,7 +210,11 @@ if use_writeToFile_all:
                     write.writePrdictionToFile(id, target, tweet, "UNKNOWN", pred_file)
                     count_unknowns += 1
             else:
-                write.writePrdictionToFile(id, target, tweet, predictions[counter_individual], pred_file)
+                if targets[i] == "Climate Change is a Real Concern" and best_climate_predictions[counter_individual] == "AGAINST":
+                    write.writePrdictionToFile(id, target, tweet, best_climate_predictions[counter_individual], pred_file)
+                    print("Adding against in climate change..")
+                else:
+                    write.writePrdictionToFile(id, target, tweet, predictions[counter_individual], pred_file)
             counter_individual += 1
             counter_all += 1
         print "Counter_individual should be equal to individual target: " + str(counter_individual) + " == " + str(len(test_target_data))

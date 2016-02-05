@@ -144,3 +144,20 @@ SemEval:
     - Fått gold labels fra SemEval. Gikk over til after-deadline branchen. Sjekker resultatet våres hvis vi ikke hadde
     brukt threshold i det hele tatt både overall og kun med climate target. Viser seg at hvis vi hadde droppet threshold
     hadde vi havnet på macro f-score på 0.6654 i motsetning til våres nåværende res: 0.6247.. æsj. Jaja.
+
+1. februar
+    - Regnet ut hvorfor jeg brukte thresholden vi brukte. Skulle brukt gjort det med CV, men så ble det ikke.
+    Uansett. Dette ble gjort litt i hast, pga innleveringsdatoen nærmet seg raskt. Slik ble det gjort:
+        - Først hentet jeg ut sannsynlighetene med en climate target trent classifier.
+        - Deretter, for hver tweet i hele treningssettet hentet jeg ut den høyeste/beste sannsynligheten
+        for hver av de tre classifierne (bigram, trigram og GloVe)
+        - Til slutt tok jeg et run med gj. snittet av alle disse og endte på 0.974
+         og et run med gj. snittet av alle bortsett fra climate target og endte på 0.967
+        #   probs2 = model.transform(test_data.Tweet)
+        #   l = []
+        #   for i in range(len(test_data.Tweet)):
+        #       l.append(max([max(probs2[0][i]), max(probs2[1][i]), max(probs2[2][i])]))
+        #   print mean(l)
+
+    Hvorfor gjorde jeg dette? Jeg trodde nok der og da at dette kunne være lurt... Ingen god forklaring.
+

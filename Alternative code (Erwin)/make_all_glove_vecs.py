@@ -74,6 +74,9 @@ for fname in glove_fnames:
     # take the dot product of the matrices,
     # which amounts to summing the Glove vectors for all terms in a tweet
     tweet_glove_vecs = tweet_vecs.dot(glove_vecs)
+    print tweet_vecs.shape
+    print glove_vecs.shape
+    print tweet_glove_vecs.shape
 
     # save vector as DataFrame with tweets as index
     tweet_glove_df = pd.DataFrame(tweet_glove_vecs, index=data.Tweet)

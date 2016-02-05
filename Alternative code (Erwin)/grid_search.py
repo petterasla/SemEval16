@@ -1,33 +1,15 @@
-from sklearn import grid_search
 import os
-
-from glob import glob
+import sys
+sys.path.append(os.path.abspath(__file__ + "/../../"))
 
 import pandas as pd
-from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.linear_model import SGDClassifier
 from sklearn.grid_search import GridSearchCV
-from sklearn.pipeline import Pipeline, FeatureUnion, make_pipeline, make_union
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-from sklearn.svm import SVC, LinearSVC
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
-from sklearn.cross_validation import cross_val_predict, StratifiedKFold
-from sklearn.metrics import fbeta_score
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from sklearn.ensemble import VotingClassifier
-from sklearn.preprocessing import Normalizer
 from sklearn import grid_search
-from glove_transformer import GloveVectorizer
-from sklearn.linear_model import SGDClassifier
 from time import time
-import writePredictionsToFile as write
-from numpy import mean
-import processTrainingData as ptd
-
 
 original_data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t', index_col=0)
 climate_data = original_data[original_data.Target == "Climate Change is a Real Concern"]

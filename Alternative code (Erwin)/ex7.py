@@ -1,12 +1,13 @@
 import os
+import sys
+sys.path.append(os.path.abspath(__file__ + "/../../"))
 
 from glob import glob
 
 import pandas as pd
 
-from sklearn.pipeline import Pipeline, FeatureUnion, make_pipeline, make_union
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-from sklearn.svm import SVC, LinearSVC
+from sklearn.pipeline import Pipeline, make_pipeline, make_union
+from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
@@ -14,13 +15,12 @@ from sklearn.cross_validation import cross_val_predict, StratifiedKFold
 from sklearn.metrics import fbeta_score
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.ensemble import VotingClassifier
-from sklearn.preprocessing import Normalizer
 
 from glove_transformer import GloveVectorizer
 
-import writePredictionsToFile as write
+import BaselineSystem.writePredictionsToFile as write
 
-import processTrainingData as ptd
+import BaselineSystem.processTrainingData as ptd
 
 use_writeToFile =  1
 

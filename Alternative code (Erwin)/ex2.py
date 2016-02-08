@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report
 from sklearn.cross_validation import cross_val_predict, StratifiedKFold
@@ -42,10 +43,11 @@ for analyzer in 'word', 'char', 'char_wb':
                                                                   min_df=min_df,
                                                                   ngram_range=ngram_range,
                                                                   analyzer=analyzer)),
-                                         ('clf', svm.LinearSVC(C=0.1, class_weight=None, dual=True, fit_intercept=True,
-                                                               intercept_scaling=1, loss='squared_hinge', max_iter=1000,
-                                                               multi_class='ovr', penalty='l2', random_state=None, tol=0.0001,
-                                                               verbose=0))])
+                                         ('clf', LogisticRegression(C=0.1,
+                                                                    solver='lbfgs',
+                                                                    multi_class='multinomial',
+                                                                    class_weight='balanced',
+                                                                    ))])
                     print pipeline
 
                     pred_stances = cross_val_predict(pipeline, target_data.Tweet, target_data.Stance, cv=cv)

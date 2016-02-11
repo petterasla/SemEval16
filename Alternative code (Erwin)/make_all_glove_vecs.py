@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.abspath(__file__ + "/../../"))
 #!/usr/bin/env python
 
 """
@@ -22,7 +25,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 train_data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t')
 test_data = pd.read_csv(open('SemEval2016-Task6-subtaskA-testdata.txt'), '\t')
+label_prop_data = pd.read_csv(open('../BaselineSystem/label_propagated_data.txt'), '\t') #label prop
+
 data = pd.concat((train_data, test_data))
+data = pd.concat((data, label_prop_data)) #label prop
 
 # First establish the vocabulary of all tweets.
 # lowercase because Glove terms are lowercased
@@ -33,12 +39,12 @@ vectorizer.fit(data.Tweet)
 tweet_vocab = set(vectorizer.get_feature_names())
 
 # base dir for local copies of Glove vectors for different corpora & dimensions
-base_dir = '/Users/Henrik/Downloads/glove.6B'
+base_dir = '/Users/Henrik/Downloads/glove'
 
 # glob pattern for Glove vectors
 glove_fnames = glob(base_dir + '/*.txt')# + glob(base_dir + '/*/*.txt')
 
-out_dir = '/Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/Alternative code (Erwin)'
+out_dir = '/Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/Alternative code (Erwin)/GloVeLabelProp' #label prop
 
 # Read the Glove vectors Slurping the whole file with pd.read_cvs does not
 # work as the table gets get truncated! Presumably because of some kind of
@@ -54,7 +60,7 @@ for fname in glove_fnames:
         term = line.split(' ', 1)[0]
         if term in tweet_vocab:
             shared_vocab.append(term)
-            buffer.write(line)
+            buffer.write(line.encode('utf8'))
 
     print '#shared:', len(shared_vocab)
     buffer.seek(0)

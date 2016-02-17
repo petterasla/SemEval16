@@ -25,12 +25,21 @@ from numpy import mean
 use_writeToFile_climate = 0
 use_writeToFile_all = 1
 use_threshold = 0
+use_upsample = 1
 
 # *****     LOAD DATA     *****
 test_data = pd.read_csv(open('SemEval2016-Task6-subtaskA-testdata.txt'), '\t', index_col=0)
 #test_data = test_data[test_data.Target == 'Climate Change is a Real Concern']
 
 original_data = pd.read_csv(open('semeval2016-task6-trainingdata.txt'), '\t', index_col=0)
+
+if use_upsample:
+    uppsample = original_data[original_data.Target == 'Climate Change is a Real Concern']
+    uppsample = original_data[original_data.Stance == 'AGAINST']
+
+    original_data = pd.concat([original_data, uppsample], axis=0)
+
+
 targets = list(original_data.Target.unique())
 
 # *****     PREPARE VARIABLES     *****
@@ -246,3 +255,5 @@ if use_threshold:
 
 if not use_threshold:
     os.system("perl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/BaselineSystem/eval.pl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/Results/all_gold.txt predict_all_with_individual_models.txt")
+else:
+    os.system("perl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/BaselineSystem/eval.pl /Users/Henrik/Documents/Datateknikk/Prosjektoppgave/SemEval16/Results/all_gold.txt predict_all_with_individual_models_and_prob97.txt")

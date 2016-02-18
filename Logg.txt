@@ -145,7 +145,7 @@ SemEval:
     brukt threshold i det hele tatt både overall og kun med climate target. Viser seg at hvis vi hadde droppet threshold
     hadde vi havnet på macro f-score på 0.6654 i motsetning til våres nåværende res: 0.6247.. æsj. Jaja.
 
-1. februar
+1. februar:
     - Regnet ut hvorfor jeg brukte thresholden vi brukte. Skulle brukt gjort det med CV, men så ble det ikke.
     Uansett. Dette ble gjort litt i hast, pga innleveringsdatoen nærmet seg raskt. Slik ble det gjort:
         - Først hentet jeg ut sannsynlighetene med en climate target trent classifier.
@@ -161,3 +161,8 @@ SemEval:
 
     Hvorfor gjorde jeg dette? Jeg trodde nok der og da at dette kunne være lurt... Ingen god forklaring.
 
+11.-18. februar:
+    - Implementert label propagation for bruk i pipeline. Ser ut til å fungere greit (bare implementert for climate).
+    - Implementert upsampling. Ga forbedret resultat.
+
+    Se github for detaljert kode og hva som er endret.
